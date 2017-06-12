@@ -1,0 +1,6 @@
+package: github.com/giantswarm/ingress-operator
+import:
+- package: github.com/giantswarm/microkit
+- package: github.com/juju/errgo
+- package: github.com/spf13/viper
+- package: golang.org/x/net
