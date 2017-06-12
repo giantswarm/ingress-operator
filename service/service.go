@@ -54,7 +54,7 @@ func New(config Config) (*Service, error) {
 	if config.Logger == nil {
 		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
-	config.Logger.Log("debug", fmt.Sprintf("creating kvm-operator with config: %#v", config))
+	config.Logger.Log("debug", fmt.Sprintf("creating ingress-operator with config: %#v", config))
 
 	var err error
 
