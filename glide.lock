@@ -1,5 +1,5 @@
-hash: 1febe511ce93325b0b3cfc2b456dee5e2a26dada80dedc69ba79e1469c92f81e
-updated: 2017-06-13T13:50:19.317918074+02:00
+hash: 7da18858f4588900bd040e31abd9cc9c83cc1050fd9881e4ea96533fc0742eb7
+updated: 2017-06-13T15:52:27.500095811+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -105,7 +105,7 @@ imports:
   - kvm/network/openssl
   - kvm/network/openssl/docker
 - name: github.com/giantswarm/microkit
-  version: 725ff3a04ac4bad327dc9c149c8cc091048eff9e
+  version: 28d34059fef4aab66f1339baf4d03024339282d1
   subpackages:
   - command
   - command/daemon
@@ -123,11 +123,12 @@ imports:
   - storage/etcd
   - storage/etcdv2
   - storage/memory
+  - tls
   - transaction
   - transaction/context/id
   - transaction/context/tracked
 - name: github.com/giantswarm/operatorkit
-  version: 2e5ac4d847f5f3c148fc28a4317d722b597733a9
+  version: 86d60151ab19cf76621f0cb376920ae4459308e8
   subpackages:
   - client/k8s
   - tpr
@@ -323,27 +324,6 @@ imports:
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: k8s.io/apimachinery
   version: 75b8dd260ef0469d96d578705a87cffd0e09dab8
-  subpackages:
-  - pkg/api/resource
-  - pkg/apis/meta/v1
-  - pkg/conversion
-  - pkg/conversion/queryparams
-  - pkg/fields
-  - pkg/labels
-  - pkg/openapi
-  - pkg/runtime
-  - pkg/runtime/schema
-  - pkg/selection
-  - pkg/types
-  - pkg/util/errors
-  - pkg/util/intstr
-  - pkg/util/net
-  - pkg/util/runtime
-  - pkg/util/sets
-  - pkg/util/validation
-  - pkg/util/wait
-  - pkg/watch
-  - third_party/forked/golang/reflect
 - name: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
