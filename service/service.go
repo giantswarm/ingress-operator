@@ -54,9 +54,17 @@ func DefaultConfig() Config {
 func New(config Config) (*Service, error) {
 	// Dependencies.
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "config.Logger must not be empty")
 	}
 	config.Logger.Log("debug", fmt.Sprintf("creating ingress-operator with config: %#v", config))
+
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "config.Flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "config.Viper must not be empty")
+	}
 
 	var err error
 
@@ -84,6 +92,9 @@ func New(config Config) (*Service, error) {
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
+
+		operatorConfig.Namespace = config.Viper.GetString(config.Flag.Service.IngressController.Namespace)
+		operatorConfig.Service = config.Viper.GetString(config.Flag.Service.IngressController.Service)
 
 		operatorService, err = operator.New(operatorConfig)
 		if err != nil {
