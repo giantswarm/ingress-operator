@@ -1,5 +1,5 @@
-hash: 7da18858f4588900bd040e31abd9cc9c83cc1050fd9881e4ea96533fc0742eb7
-updated: 2017-06-13T15:52:27.500095811+02:00
+hash: 1febe511ce93325b0b3cfc2b456dee5e2a26dada80dedc69ba79e1469c92f81e
+updated: 2017-06-13T16:33:30.048713655+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -128,7 +128,7 @@ imports:
   - transaction/context/id
   - transaction/context/tracked
 - name: github.com/giantswarm/operatorkit
-  version: 86d60151ab19cf76621f0cb376920ae4459308e8
+  version: 6a44808050fe99263d026ab4647280d647eaa709
   subpackages:
   - client/k8s
   - tpr
@@ -323,7 +323,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: k8s.io/apimachinery
-  version: 75b8dd260ef0469d96d578705a87cffd0e09dab8
+  version: 2de00c78cb6d6127fb51b9531c1b3def1cbcac8c
 - name: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
