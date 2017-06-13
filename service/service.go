@@ -8,7 +8,9 @@ import (
 
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/operatorkit/client/k8s"
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
 
 	"github.com/giantswarm/ingress-operator/flag"
 	"github.com/giantswarm/ingress-operator/service/operator"
@@ -52,17 +54,47 @@ func DefaultConfig() Config {
 func New(config Config) (*Service, error) {
 	// Dependencies.
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "config.Logger must not be empty")
 	}
 	config.Logger.Log("debug", fmt.Sprintf("creating ingress-operator with config: %#v", config))
 
+	// Settings.
+	if config.Flag == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "config.Flag must not be empty")
+	}
+	if config.Viper == nil {
+		return nil, microerror.MaskAnyf(invalidConfigError, "config.Viper must not be empty")
+	}
+
 	var err error
+
+	var k8sClient kubernetes.Interface
+	{
+		c := k8s.Config{
+			Logger: config.Logger,
+			TLS: k8s.TLSClientConfig{
+				CAFile:  config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.CaFile),
+				CrtFile: config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.CrtFile),
+				KeyFile: config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.KeyFile),
+			},
+			Address:   config.Viper.GetString(config.Flag.Service.Kubernetes.Address),
+			InCluster: config.Viper.GetBool(config.Flag.Service.Kubernetes.InCluster),
+		}
+		k8sClient, err = k8s.NewClient(c)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+	}
 
 	var operatorService *operator.Service
 	{
 		operatorConfig := operator.DefaultConfig()
 
+		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
+
+		operatorConfig.Namespace = config.Viper.GetString(config.Flag.Service.IngressController.Namespace)
+		operatorConfig.Service = config.Viper.GetString(config.Flag.Service.IngressController.Service)
 
 		operatorService, err = operator.New(operatorConfig)
 		if err != nil {
