@@ -88,6 +88,7 @@ func New(config Config) (*Service, error) {
 
 		// Internals
 		bootOnce:  sync.Once{},
+		mutex:     sync.Mutex{},
 		namespace: config.Namespace,
 		service:   config.Service,
 		tpr:       newTPR,
@@ -105,6 +106,7 @@ type Service struct {
 	// Internals.
 	ipsPorts  map[string]int
 	bootOnce  sync.Once
+	mutex     sync.Mutex
 	namespace string
 	service   string
 	tpr       *tpr.TPR
@@ -137,13 +139,15 @@ func (s *Service) Boot() {
 }
 
 func (s *Service) addFunc(obj interface{}) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	err := s.addFuncError(obj)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "create")
 	}
 }
 
-// TODO sync with mutex
 // TODO tests
 func (s *Service) addFuncError(obj interface{}) error {
 	customObject, ok := obj.(*kvmtpr.CustomObject)
@@ -188,6 +192,9 @@ func (s *Service) addFuncError(obj interface{}) error {
 }
 
 func (s *Service) deleteFunc(obj interface{}) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	err := s.deleteFuncError(obj)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "delete")
