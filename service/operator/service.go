@@ -13,6 +13,7 @@ import (
 	"github.com/giantswarm/kvmtpr"
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/operatorkit/client/k8s"
 	"github.com/giantswarm/operatorkit/tpr"
 )
 
@@ -34,10 +35,30 @@ type Config struct {
 // DefaultConfig provides a default configuration to create a new service by
 // best effort.
 func DefaultConfig() Config {
+	var err error
+
+	var k8sClient kubernetes.Interface
+	{
+		config := k8s.DefaultConfig()
+		k8sClient, err = k8s.NewClient(config)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	var newLogger micrologger.Logger
+	{
+		config := micrologger.DefaultConfig()
+		newLogger, err = micrologger.New(config)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	return Config{
 		// Dependencies.
-		K8sClient: nil,
-		Logger:    nil,
+		K8sClient: k8sClient,
+		Logger:    newLogger,
 
 		// Settings.
 		Namespace: "default",
@@ -148,7 +169,6 @@ func (s *Service) addFunc(obj interface{}) {
 	}
 }
 
-// TODO tests
 func (s *Service) addFuncError(obj interface{}) error {
 	customObject, ok := obj.(*kvmtpr.CustomObject)
 	if !ok {
