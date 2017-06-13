@@ -1,12 +1,12 @@
 package: github.com/giantswarm/ingress-operator
 import:
-- package: k8s.io/client-go
-  version: ~2.0.0-alpha.0
+- package: github.com/giantswarm/microkit
+- package: github.com/giantswarm/operatorkit
+- package: github.com/juju/errgo
+- package: github.com/spf13/viper
+- package: golang.org/x/net
+- package: k8s.io/apimachinery
 - package: github.com/golang/protobuf
   version: 8ee79997227bf9b34611aee7946ae64735e6fd93
 - package: google.golang.org/grpc
   version: 777daa17ff9b5daef1cfdf915088a2ada3332bf0
-- package: github.com/giantswarm/microkit
-- package: github.com/juju/errgo
-- package: github.com/spf13/viper
-- package: golang.org/x/net
