@@ -193,7 +193,7 @@ func (s *Service) addPortToService(customObject kvmtpr.CustomObject) error {
 		return microerror.MaskAny(err)
 	}
 
-	portName := portName(customObject)
+	portName := PortName(customObject)
 
 	exists := portNameExists(k8sService.Spec.Ports, portName)
 	if exists {
@@ -278,8 +278,4 @@ func portNumberExists(ports []apiv1.ServicePort, number int) bool {
 	}
 
 	return false
-}
-
-func portName(customObject kvmtpr.CustomObject) string {
-	return fmt.Sprintf(PortNameFormat, ClusterID(customObject))
 }
