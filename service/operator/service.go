@@ -175,16 +175,29 @@ func (s *Service) addFuncError(obj interface{}) error {
 		return microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", &kvmtpr.CustomObject{}, obj)
 	}
 
+	var err error
+
+	err = s.addPortToService(*customObject)
+	if err != nil {
+		return microerror.MaskAny(err)
+	}
+
+	return nil
+}
+
+// addPortToService adds a cluster port to the Kubernetes service resource of
+// the configured ingress controller, if it does not already exists.
+func (s *Service) addPortToService(customObject kvmtpr.CustomObject) error {
 	k8sService, err := s.k8sClient.CoreV1().Services(s.namespace).Get(s.service)
 	if err != nil {
 		return microerror.MaskAny(err)
 	}
 
-	portName := portName(*customObject)
+	portName := portName(customObject)
 
 	exists := portNameExists(k8sService.Spec.Ports, portName)
 	if exists {
-		s.logger.Log("debug", fmt.Sprintf("port for cluster '%s' already exists", ClusterID(*customObject)))
+		s.logger.Log("debug", fmt.Sprintf("port for cluster '%s' already exists", ClusterID(customObject)))
 		return nil
 	}
 
