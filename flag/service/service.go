@@ -1,11 +1,13 @@
 package service
 
 import (
-	"github.com/giantswarm/ingress-operator/flag/service/ingresscontroller"
+	"github.com/giantswarm/ingress-operator/flag/service/guestcluster"
+	"github.com/giantswarm/ingress-operator/flag/service/hostcluster"
 	"github.com/giantswarm/ingress-operator/flag/service/kubernetes"
 )
 
 type Service struct {
-	IngressController ingresscontroller.IngressController
-	Kubernetes        kubernetes.Kubernetes
+	GuestCluster guestcluster.GuestCluster
+	HostCluster  hostcluster.HostCluster
+	Kubernetes   kubernetes.Kubernetes
 }
