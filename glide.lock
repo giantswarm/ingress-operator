@@ -1,5 +1,5 @@
 hash: 500d5056da9b14c31ea1284cd3bd92d102279ddb2206e77ff1697865a151b8e0
-updated: 2017-06-14T17:36:46.438661365+02:00
+updated: 2017-06-14T17:51:00.64683041+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -58,59 +58,13 @@ imports:
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
-- name: github.com/giantswarm/clustertpr
-  version: 13ee60687afcd5e519d1d3e8a60c1c57d2d21ccf
-  subpackages:
-  - calico
-  - cluster
-  - customer
-  - docker
-  - docker/daemon
-  - docker/registry
-  - etcd
-  - kubernetes
-  - kubernetes/api
-  - kubernetes/dns
-  - kubernetes/hyperkube
-  - kubernetes/hyperkube/docker
-  - kubernetes/ingress
-  - kubernetes/kubectl
-  - kubernetes/kubectl/docker
-  - kubernetes/kubelet
-  - kubernetes/networksetup
-  - kubernetes/networksetup/docker
-  - kubernetes/ssh
-  - node
-  - vault
 - name: github.com/giantswarm/ingresstpr
-  version: db624d23f18631f78d2b60144d711668ef96c5e1
+  version: 1deb87368b1227b8a333488c5a5fb5f78032b514
   subpackages:
   - guestcluster
   - hostcluster
   - hostcluster/ingresscontroller
   - protocolport
-- name: github.com/giantswarm/kvmtpr
-  version: 9e2f4a7a1718134df121594efccc224a76de3e58
-  subpackages:
-  - kvm
-  - kvm/endpointupdater
-  - kvm/endpointupdater/docker
-  - kvm/flannel
-  - kvm/flannel/client
-  - kvm/flannel/docker
-  - kvm/k8skvm
-  - kvm/k8skvm/docker
-  - kvm/kubectl
-  - kvm/kubectl/googleapi
-  - kvm/network
-  - kvm/network/bridge
-  - kvm/network/bridge/docker
-  - kvm/network/config
-  - kvm/network/config/docker
-  - kvm/network/iptables
-  - kvm/network/iptables/docker
-  - kvm/network/openssl
-  - kvm/network/openssl/docker
 - name: github.com/giantswarm/microkit
   version: 1ac51fb9905e0c7ab5a8d12fec127c6fbfd75aac
   subpackages:
