@@ -1,5 +1,5 @@
-hash: 1febe511ce93325b0b3cfc2b456dee5e2a26dada80dedc69ba79e1469c92f81e
-updated: 2017-06-13T16:33:30.048713655+02:00
+hash: 500d5056da9b14c31ea1284cd3bd92d102279ddb2206e77ff1697865a151b8e0
+updated: 2017-06-14T17:36:46.438661365+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -82,6 +82,13 @@ imports:
   - kubernetes/ssh
   - node
   - vault
+- name: github.com/giantswarm/ingresstpr
+  version: db624d23f18631f78d2b60144d711668ef96c5e1
+  subpackages:
+  - guestcluster
+  - hostcluster
+  - hostcluster/ingresscontroller
+  - protocolport
 - name: github.com/giantswarm/kvmtpr
   version: 9e2f4a7a1718134df121594efccc224a76de3e58
   subpackages:
@@ -105,7 +112,7 @@ imports:
   - kvm/network/openssl
   - kvm/network/openssl/docker
 - name: github.com/giantswarm/microkit
-  version: 28d34059fef4aab66f1339baf4d03024339282d1
+  version: 1ac51fb9905e0c7ab5a8d12fec127c6fbfd75aac
   subpackages:
   - command
   - command/daemon
@@ -323,7 +330,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: k8s.io/apimachinery
-  version: 2de00c78cb6d6127fb51b9531c1b3def1cbcac8c
+  version: cff8db64dd5b6fb0166dc2cf36e39c7ff4fe48c8
 - name: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
