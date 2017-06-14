@@ -99,14 +99,6 @@ func main() {
 
 	daemonCommand := newCommand.DaemonCommand().CobraCommand()
 
-	daemonCommand.PersistentFlags().StringMap(f.Service.GuestCluster.IngressController.ProtocolPorts, map[string]string{"http": "30010", "https": "30011"}, "Protocol/port mapping of the ingress controller inside the guest clusters.")
-	daemonCommand.PersistentFlags().String(f.Service.GuestCluster.Service, "worker", "Name of the service inside the guest clusters.")
-
-	daemonCommand.PersistentFlags().IntSlice(f.Service.HostCluster.AvailablePorts, []int{31000, 31001}, "Name of the Kubernetes configmap resource of the ingress-controller the operator should manage.")
-	daemonCommand.PersistentFlags().String(f.Service.HostCluster.IngressController.ConfigMap, "ingress-controller", "Name of the ingress controller configmap inside the host cluster.")
-	daemonCommand.PersistentFlags().String(f.Service.HostCluster.IngressController.Namespace, "default", "Name of the ingress controller namespace inside the host cluster.")
-	daemonCommand.PersistentFlags().String(f.Service.HostCluster.IngressController.Service, "ingress-controller", "Name of the ingress controller service inside the host cluster.")
-
 	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.Address, "http://127.0.0.1:6443", "Address used to connect to Kubernetes. When empty in-cluster config is created.")
 	daemonCommand.PersistentFlags().Bool(f.Service.Kubernetes.InCluster, false, "Whether to use the in-cluster config to authenticate with Kubernetes.")
 	daemonCommand.PersistentFlags().String(f.Service.Kubernetes.TLS.CaFile, "", "Certificate authority file path to use to authenticate with Kubernetes.")

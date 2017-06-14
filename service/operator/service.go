@@ -23,7 +23,11 @@ const (
 	// ConfigMapValueFormat is the format string used to create a config-map
 	// value. It combines the namespace of the guest cluster, the service name
 	// used to send traffic to and the port of the ingress controller within the
-	// guest cluster.
+	// guest cluster. E.g.:
+	//
+	//     namespace/service:30010
+	//     namespace/service:30011
+	//
 	ConfigMapValueFormat = "%s/%s:%d"
 	// ServicePortNameFormat is the format string used to create a service port
 	// name. It combines the protocol, the port of the ingress controller within
@@ -202,30 +206,19 @@ func (s *Service) addFuncError(obj interface{}) error {
 		return microerror.MaskAny(err)
 	}
 
-	aState, err := s.analyseState(cState, dState)
+	createState, deleteState, err := s.analyseState(cState, dState)
 	if err != nil {
 		return microerror.MaskAny(err)
 	}
 
-	for _, s := range aState.CreateState {
-		err := s.createState(s)
-		if err != nil {
-			return microerror.MaskAny(err)
-		}
+	err = s.createState(createState)
+	if err != nil {
+		return microerror.MaskAny(err)
 	}
 
-	for _, s := range aState.DeleteState {
-		err = s.deleteState(s)
-		if err != nil {
-			return microerror.MaskAny(err)
-		}
-	}
-
-	for _, s := range aState.UpdateState {
-		err = s.updateState(s)
-		if err != nil {
-			return microerror.MaskAny(err)
-		}
+	err = s.deleteState(deleteState)
+	if err != nil {
+		return microerror.MaskAny(err)
 	}
 
 	return nil
@@ -239,28 +232,28 @@ func (s *Service) currentState(customObject kvmtpr.CustomObject) (OperatorState,
 	{
 		var k8sConfigMap *apiv1.ConfigMap
 		{
-			namespace := s.viper.GetString(s.flag.Service.HostCluster.IngressController.Namespace)
-			configMap := s.viper.GetString(s.flag.Service.HostCluster.IngressController.ConfigMap)
+			namespace := customObject.HostCluster.IngressController.Namespace
+			configMap := customObject.HostCluster.IngressController.ConfigMap
 
 			k8sConfigMap, err = s.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap)
 			if err != nil {
 				return OperatorState{}, microerror.MaskAny(err)
 			}
+			cState.ConfigMap.ConfigMap = k8sConfigMap
 		}
 
-		{
-			protocolPorts := s.viper.GetStringMap(s.flag.Service.GuestCluster.IngressController.ProtocolPorts)
-			namespace := ClusterNamespace(customObject)
-			service := s.viper.GetStringMap(s.flag.Service.GuestCluster.Service)
+		for _, p := range customObject.ProtocolPorts {
+			configMapValue := fmt.Sprintf(
+				ConfigMapValueFormat,
+				customObject.GuestCluster.Namespace,
+				customObject.GuestCluster.Service,
+				p.IngressPort,
+			)
 
-			for _, port := range protocolPorts {
-				configMapValue := fmt.Sprintf(ConfigMapValueFormat, namespace, service, port)
-
-				for k, v := range k8sConfigMap {
-					if configMapValue == v {
-						cState.ConfigMap.Values[k] = v
-						break
-					}
+			for k, v := range k8sConfigMap {
+				if configMapValue == v {
+					cState.ConfigMap.Data[k] = v
+					break
 				}
 			}
 		}
@@ -270,27 +263,28 @@ func (s *Service) currentState(customObject kvmtpr.CustomObject) (OperatorState,
 	{
 		var k8sService *apiv1.Service
 		{
-			namespace := s.viper.GetString(s.flag.Service.HostCluster.IngressController.Namespace)
-			service := s.viper.GetString(s.flag.Service.HostCluster.IngressController.Service)
+			namespace := customObject.HostCluster.IngressController.Namespace
+			service := customObject.HostCluster.IngressController.Service
 
 			k8sService, err = s.k8sClient.CoreV1().Services(namespace).Get(service)
 			if err != nil {
 				return OperatorState{}, microerror.MaskAny(err)
 			}
+			cState.Service.Service = k8sService
 		}
 
-		{
-			protocolPorts := s.viper.GetStringMap(s.flag.Service.GuestCluster.IngressController.ProtocolPorts)
-			clusterID := ClusterID(customObject)
+		for _, p := range customObject.ProtocolPorts {
+			servicePortName := fmt.Sprintf(
+				ServicePortNameFormat,
+				p.Protocol,
+				p.IngressPort,
+				customObject.GuestCluster.ID,
+			)
 
-			for protocol, port := range protocolPorts {
-				servicePortName := fmt.Sprintf(ServicePortNameFormat, protocol, port, clusterID)
-
-				for _, p := range k8sService.Spec.Ports {
-					if servicePortName == p.Name {
-						cState.Service.Ports = append(cState.Service.Ports, p)
-						break
-					}
+			for _, p := range k8sService.Spec.Ports {
+				if servicePortName == p.Name {
+					cState.Service.Ports = append(cState.Service.Ports, p)
+					break
 				}
 			}
 		}
@@ -304,37 +298,123 @@ func (s *Service) desiredState(customObject kvmtpr.CustomObject) (OperatorState,
 	var dState OperatorState
 
 	{
-		protocolPorts := s.viper.GetStringMap(s.flag.Service.GuestCluster.IngressController.ProtocolPorts)
-		namespace := ClusterNamespace(customObject)
-		service := s.viper.GetStringMap(s.flag.Service.GuestCluster.Service)
+		for _, p := range customObject.ProtocolPorts {
+			configMapKey := p.LBPort
+			configMapValue := fmt.Sprintf(
+				ConfigMapValueFormat,
+				customObject.GuestCluster.Namespace,
+				customObject.GuestCluster.Service,
+				p.IngressPort,
+			)
 
-		for _, port := range protocolPorts {
-			configMapKey := "k" // TODO
-			configMapValue := fmt.Sprintf(ConfigMapValueFormat, namespace, service, port)
-
-			dState.ConfigMap.Values[configMapKey] = configMapValue
+			dState.ConfigMap.Data[configMapKey] = configMapValue
 		}
 	}
 
 	{
-		protocolPorts := s.viper.GetStringMap(s.flag.Service.GuestCluster.IngressController.ProtocolPorts)
-		clusterID := ClusterID(customObject)
+		for _, p := range customObject.ProtocolPorts {
+			servicePortName := fmt.Sprintf(
+				ServicePortNameFormat,
+				p.Protocol,
+				p.IngressPort,
+				customObject.GuestCluster.ID,
+			)
 
-		for protocol, port := range protocolPorts {
-			lbPort := 0 // TODO
 			newPort := apiv1.ServicePort{
-				Name:       fmt.Sprintf(ServicePortNameFormat, protocol, port, clusterID),
+				Name:       servicePortName,
 				Protocol:   apiv1.ProtocolTCP,
-				Port:       int32(lbPort),
-				TargetPort: intstr.FromInt(lbPort),
-				NodePort:   int32(lbPort),
+				Port:       int32(p.LBPort),
+				TargetPort: intstr.FromInt(p.LBPort),
+				NodePort:   int32(p.LBPort),
 			}
 
-			dState.Service.Ports = append(dState.Service.Ports, p)
+			dState.Service.Ports = append(dState.Service.Ports, newPort)
 		}
 	}
 
 	return dState, nil
+}
+
+func (s *Service) analyseState(cState, dState OperatorState) (OperatorState, OperatorState, error) {
+	var createState OperatorState
+	var deleteState OperatorState
+
+	// Make sure the current state of the Kubernetes resources is known by the
+	// create and delete actions. The resources we already fetched represent the
+	// source of truth and have to be used to update the resources in the next
+	// steps.
+	{
+		createState.ConfigMap.ConfigMap = cState.ConfigMap.ConfigMap
+		createState.Service.Service = cState.Service.Service
+
+		deleteState.ConfigMap.ConfigMap = cState.ConfigMap.ConfigMap
+		deleteState.Service.Service = cState.Service.Service
+	}
+
+	// Find anything which is in desired state but not in current state.
+	// Everything we find here is supposed to be created.
+	{
+		// Process config-map to find its create state.
+		{
+			for k, v := range dState.ConfigMap.Data {
+				if !inConfigMapData(cState.ConfigMap.Data, k, v) {
+					createState.ConfigMap.Data[k] = v
+				}
+			}
+		}
+
+		// Process service to find its create state.
+		{
+			for _, p := range dState.Service.Ports {
+				if !inServicePorts(cState.ServicePorts, p) {
+					createState.Service.Ports = append(createState.Service.Ports, p)
+				}
+			}
+		}
+	}
+
+	// Find anything which is in current state but not in desired state.
+	// Everything we find here is supposed to be deleted.
+	{
+		// Process config-map to find its delete state.
+		{
+			for k, v := range cState.ConfigMap.Data {
+				if !inConfigMapData(dState.ConfigMap.Data, k, v) {
+					deleteState.ConfigMap.Data[k] = v
+				}
+			}
+		}
+
+		// Process service to find its delete state.
+		{
+			for _, p := range cState.Service.Ports {
+				if !inServicePorts(dState.ServicePorts, p) {
+					deleteState.Service.Ports = append(deleteState.Service.Ports, p)
+				}
+			}
+		}
+	}
+
+	return createState, deleteState, nil
+}
+
+func (s *Service) createState(createState OperatorState) error {
+	// TODO config-map
+	// TODO service
+	{
+		k8sService.Spec.Ports = append(k8sService.Spec.Ports, newPort)
+
+		_, err = s.k8sClient.CoreV1().Services(s.ingressControllerNamespace).Update(k8sService)
+		if err != nil {
+			return microerror.MaskAny(err)
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) deleteState(deleteState OperatorState) error {
+	return nil
 }
 
 //
@@ -350,179 +430,6 @@ func (s *Service) desiredState(customObject kvmtpr.CustomObject) (OperatorState,
 //
 //
 
-//	configmapPortResults, err := s.getPortForConfigMap(*customObject)
-//	if err != nil {
-//		return microerror.MaskAny(err)
-//	}
-//
-//	servicePortResults := s.getPortForService(*customObject)
-//	if err != nil {
-//		return microerror.MaskAny(err)
-//	}
-//
-//	err := validateportResults(configmapPortResults, servicePortResults)
-//	if err != nil {
-//		// TODO in such a case we could probably implement the ingress-operator to
-//		// self heal the situation by just fixing the service/configmap. For now we
-//		// do not care though.
-//		return microerror.MaskAny(err)
-//	}
-//
-//	for _, result := range configmapPortResults {
-//		if result.Exists {
-//			s.logger.Log("debug", fmt.Sprintf("port '%d' for cluster '%s' already exists in configmap", result.PortNumber, ClusterID(customObject)))
-//		} else {
-//			err := s.addPortToConfigMap(result.LBPort, result.Destination, k8sConfigMap)
-//			if err != nil {
-//				return microerror.MaskAny(err)
-//			}
-//		}
-//	}
-//
-//	for _, result := range servicePortResults {
-//		if result.Exists {
-//			s.logger.Log("debug", fmt.Sprintf("port '%d' for cluster '%s' already exists in service", result.PortNumber, ClusterID(customObject)))
-//		} else {
-//			err := s.addPortToService(result.LBPort, k8sService)
-//			if err != nil {
-//				return microerror.MaskAny(err)
-//			}
-//		}
-//	}
-
-type configmapPortResult struct {
-	Destination  string
-	Exists       bool
-	K8sConfigMap apiv1.ConfigMap
-	LBPort       string
-}
-
-// getPortForConfigMap looks up a cluster port and its corresponding
-// namespace/service mapping within the Kubernetes configmap resource of the
-// configured ingress controller. Additionally a boolean is returned indicating
-// if the port already exists within the configmap resource.
-func (s *Service) getPortForConfigMap(customObject kvmtpr.CustomObject) ([]configmapPortResult, error) {
-	k8sConfigMap, err := s.k8sClient.CoreV1().ConfigMaps(s.ingressControllerNamespace).Get(s.configmap)
-	if err != nil {
-		return nil, microerror.MaskAny(err)
-	}
-
-	portName := PortName(customObject)
-	port, exists := serviceToPortByName(k8sService, portName)
-	if exists {
-		result := configmapPortResult{
-			Exists:     true,
-			K8sService: k8sService,
-			PortName:   portName,
-			PortNumber: existingPortNumber,
-		}
-		return result, nil
-	}
-
-	lbPort, err := s.newLBPort(configmapToPorts(k8sConfigMap), s.availablePorts)
-	if err != nil {
-		return 0, false, apiv1.ConfigMap{}, microerror.MaskAny(err)
-	}
-
-	return port, false, k8sConfigMap, nil
-}
-
-func (s *Service) addPortToConfigMap(lbPort int, k8sConfigMap apiv1.ConfigMap) error {
-	// TODO
-	newPort := apiv1.ServicePort{
-		Name:       portName,
-		Protocol:   apiv1.ProtocolTCP,
-		Port:       int32(lbPort),
-		TargetPort: intstr.FromInt(lbPort),
-		NodePort:   int32(lbPort),
-	}
-
-	k8sService.Spec.Ports = append(k8sService.Spec.Ports, newPort)
-
-	_, err = s.k8sClient.CoreV1().Services(s.ingressControllerNamespace).Update(k8sService)
-	if err != nil {
-		return microerror.MaskAny(err)
-	}
-
-	return nil
-}
-
-type servicePortResult struct {
-	Exists     bool
-	K8sService apiv1.Service
-	LBPort     int
-	PortName   string
-}
-
-// getPortForService looks up a cluster port within the Kubernetes service
-// resource of the configured ingress controller. Additionally a boolean is
-// returned indicating if the port already exists within the service resource.
-func (s *Service) getPortForService(customObject kvmtpr.CustomObject) ([]servicePortResult, error) {
-	k8sService, err := s.k8sClient.CoreV1().Services(s.ingressControllerNamespace).Get(s.service)
-	if err != nil {
-		return nil, microerror.MaskAny(err)
-	}
-
-	var results []servicePortResult
-
-	for k, v := range s.ingressControllerPorts {
-		portName := fmt.Sprintf(PortNameFormat, k, v, ClusterID(customObject))
-		existingPortNumber, exists := serviceToPortByName(k8sService, portName)
-		if exists {
-			result := servicePortResult{
-				Exists:     true,
-				K8sService: k8sService,
-				LBPort:     existingPortNumber,
-				PortName:   portName,
-			}
-			results = append(results, result)
-		}
-	}
-
-	// As soon as we collected all the port information for the service, we can
-	// stop our work here and return to continue other routines.
-	if len(results) == len(s.ingressControllerPorts) {
-		return results, nil
-	}
-
-	// Diff results and only apply new ones.
-
-	for k, v := range s.ingressControllerPorts {
-		newPortNumber, err := s.newLBPort(serviceToPorts(k8sService), s.availablePorts)
-		if err != nil {
-			return servicePortResult{}, microerror.MaskAny(err)
-		}
-		result := servicePortResult{
-			Exists:     true,
-			K8sService: k8sService,
-			LBPort:     newPortNumber,
-			PortName:   portName,
-		}
-		overwritingResults = append(overwritingResults, result)
-	}
-
-	return overwritingResults, nil
-}
-
-func (s *Service) addPortToService(lbPort int, k8sService apiv1.Service) error {
-	newPort := apiv1.ServicePort{
-		Name:       portName,
-		Protocol:   apiv1.ProtocolTCP,
-		Port:       int32(lbPort),
-		TargetPort: intstr.FromInt(lbPort),
-		NodePort:   int32(lbPort),
-	}
-
-	k8sService.Spec.Ports = append(k8sService.Spec.Ports, newPort)
-
-	_, err = s.k8sClient.CoreV1().Services(s.ingressControllerNamespace).Update(k8sService)
-	if err != nil {
-		return microerror.MaskAny(err)
-	}
-
-	return nil
-}
-
 func (s *Service) deleteFunc(obj interface{}) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -537,21 +444,9 @@ func (s *Service) deleteFuncError(obj interface{}) error {
 	return nil
 }
 
-func (s *Service) newLBPort(usedPorts []int, availablePorts []int) (int, error) {
-	for _, a := range availablePorts {
-		if portNumberExists(usedPorts, a) {
-			continue
-		}
-
-		return a, nil
-	}
-
-	return 0, microerror.MaskAnyf(capacityReachedError, "no more ports available")
-}
-
-func portNumberExists(ports []int, number int) bool {
-	for _, p := range ports {
-		if p == number {
+func inConfigMapData(data map[string]string, k, v string) bool {
+	for dk, dv := range data {
+		if dk == k && dv == v {
 			return true
 		}
 	}
@@ -559,7 +454,12 @@ func portNumberExists(ports []int, number int) bool {
 	return false
 }
 
-func validateportResults(servicePortResults []servicePortResult, configmapPortResults []configmapPortResults) error {
-	// TODO
-	return nil
+func inServicePorts(ports []apiv1.ServicePort, p apiv1.ServicePort) bool {
+	for _, pp := range ports {
+		if pp.String() == p.String() {
+			return true
+		}
+	}
+
+	return false
 }

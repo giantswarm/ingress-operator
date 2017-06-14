@@ -10,9 +10,11 @@ type OperatorState struct {
 }
 
 type ConfigMapState struct {
-	Values map[string]string
+	ConfigMap apiv1.ConfigMap
+	Data      map[string]string
 }
 
 type ServiceState struct {
-	Ports []apiv1.ServicePort
+	Ports   []apiv1.ServicePort
+	Service apiv1.Service
 }
