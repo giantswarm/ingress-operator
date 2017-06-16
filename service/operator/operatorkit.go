@@ -22,8 +22,8 @@ type Operator interface {
 	// the information provided by the TPO. This can e.g. be some data within a
 	// configmap, how it should be provided by the Kubernetes API. This is not
 	// limited to Kubernetes resources though. Another example would be to make up
-	// and return information about Flannel bridges, how they should be look like
-	// on a server host.
+	// and return information about Flannel bridges, how they should look like on
+	// a server host.
 	GetDesiredState(obj interface{}) (interface{}, error)
 	// GetEmptyState is only to return the specific zero value the operator
 	// expects when reconciling delete operations. So this returns the desired
