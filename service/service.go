@@ -93,9 +93,6 @@ func New(config Config) (*Service, error) {
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
 
-		operatorConfig.Namespace = config.Viper.GetString(config.Flag.Service.IngressController.Namespace)
-		operatorConfig.Service = config.Viper.GetString(config.Flag.Service.IngressController.Service)
-
 		operatorService, err = operator.New(operatorConfig)
 		if err != nil {
 			return nil, microerror.MaskAny(err)
