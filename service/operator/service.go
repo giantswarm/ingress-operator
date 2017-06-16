@@ -376,8 +376,8 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 		// Process config-map to find its delete state.
 		{
 			newData := map[string]string{}
-			for k, v := range cState.ConfigMap.Data {
-				if !inConfigMapData(dState.ConfigMapData, k, v) {
+			for k, v := range deleteState.ConfigMap.Data {
+				if inConfigMapData(dState.ConfigMapData, k, v) {
 					newData[k] = v
 				}
 			}
@@ -387,8 +387,8 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 		// Process service to find its delete state.
 		{
 			var newPorts []apiv1.ServicePort
-			for _, p := range cState.Service.Spec.Ports {
-				if !inServicePorts(dState.ServicePorts, p) {
+			for _, p := range deleteState.Service.Spec.Ports {
+				if inServicePorts(dState.ServicePorts, p) {
 					newPorts = append(newPorts, p)
 				}
 			}
