@@ -10,8 +10,8 @@ type OperatorState struct {
 }
 
 type ConfigMapState struct {
-	Resource apiv1.ConfigMap
 	Data     map[string]string
+	Resource apiv1.ConfigMap
 }
 
 type ServiceState struct {

@@ -1,113 +1,168 @@
 package operator
 
-// func Test_Service_newClusterPort(t *testing.T) {
-// 	testCases := []struct {
-// 		K8sPorts       []apiv1.ServicePort
-// 		AvailablePorts []int
-// 		Expected       int
-// 		ErrorMatcher   func(error) bool
-// 	}{
-// 		{
-// 			K8sPorts: []apiv1.ServicePort{
-// 				{
-// 					Name: "test-port-one",
-// 					Port: 30001,
-// 				},
-// 				{
-// 					Name: "test-port-two",
-// 					Port: 30002,
-// 				},
-// 				{
-// 					Name: "test-port-three",
-// 					Port: 30003,
-// 				},
-// 			},
-// 			AvailablePorts: []int{
-// 				30001,
-// 				30002,
-// 				30003,
-// 				30004,
-// 			},
-// 			Expected:     30004,
-// 			ErrorMatcher: nil,
-// 		},
-// 		{
-// 			K8sPorts: []apiv1.ServicePort{
-// 				{
-// 					Name: "test-port-one",
-// 					Port: 30001,
-// 				},
-// 				{
-// 					Name: "test-port-two",
-// 					Port: 30002,
-// 				},
-// 				{
-// 					Name: "test-port-four",
-// 					Port: 30004,
-// 				},
-// 			},
-// 			AvailablePorts: []int{
-// 				30001,
-// 				30002,
-// 				30003,
-// 				30004,
-// 				30005,
-// 			},
-// 			Expected:     30003,
-// 			ErrorMatcher: nil,
-// 		},
-// 		{
-// 			K8sPorts: []apiv1.ServicePort{
-// 				{
-// 					Name: "test-port-one",
-// 					Port: 30001,
-// 				},
-// 				{
-// 					Name: "test-port-three",
-// 					Port: 30003,
-// 				},
-// 				{
-// 					Name: "test-port-four",
-// 					Port: 30004,
-// 				},
-// 				{
-// 					Name: "test-port-five",
-// 					Port: 30005,
-// 				},
-// 			},
-// 			AvailablePorts: []int{
-// 				30001,
-// 				30002,
-// 				30003,
-// 				30004,
-// 				30005,
-// 				30006,
-// 			},
-// 			Expected:     30002,
-// 			ErrorMatcher: nil,
-// 		},
-// 	}
-//
-// 	var err error
-// 	var newService *Service
-// 	{
-// 		newConfig := DefaultConfig()
-// 		newService, err = New(newConfig)
-// 		if err != nil {
-// 			t.Fatal("expected", nil, "got", err)
-// 		}
-// 	}
-//
-// 	for i, testCase := range testCases {
-// 		expected, err := newService.newClusterPort(testCase.K8sPorts, testCase.AvailablePorts)
-// 		if err != nil && testCase.ErrorMatcher == nil {
-// 			t.Fatal("case", i+1, "expected", nil, "got", err)
-// 		}
-// 		if testCase.ErrorMatcher != nil && !testCase.ErrorMatcher(err) {
-// 			t.Fatal("case", i+1, "expected", true, "got", false)
-// 		}
-// 		if testCase.Expected != expected {
-// 			t.Fatalf("case %d expected %#v got %#v", i+1, expected, testCase.Expected)
-// 		}
-// 	}
-// }
+import (
+	"reflect"
+	"testing"
+
+	"github.com/giantswarm/ingresstpr"
+	"github.com/giantswarm/ingresstpr/guestcluster"
+	"github.com/giantswarm/ingresstpr/hostcluster"
+	"github.com/giantswarm/ingresstpr/hostcluster/ingresscontroller"
+	"github.com/giantswarm/ingresstpr/protocolport"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/util/intstr"
+)
+
+func Test_Service_GetDesiredState(t *testing.T) {
+	testCases := []struct {
+		Obj          interface{}
+		Expected     OperatorState
+		ErrorMatcher func(error) bool
+	}{
+		{
+			Obj: &ingresstpr.CustomObject{
+				Spec: ingresstpr.Spec{
+					GuestCluster: guestcluster.GuestCluster{
+						ID:        "al9qy",
+						Namespace: "al9qy",
+						Service:   "worker",
+					},
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
+							ConfigMap: "ingress-controller",
+							Namespace: "kube-system",
+							Service:   "ingress-controller",
+						},
+					},
+					ProtocolPorts: []protocolport.ProtocolPort{
+						{
+							IngressPort: 30010,
+							Protocol:    "http",
+							LBPort:      31000,
+						},
+					},
+				},
+			},
+			Expected: OperatorState{
+				ConfigMap: ConfigMapState{
+					Data: map[string]string{
+						"31000": "al9qy/worker:30010",
+					},
+					Resource: apiv1.ConfigMap{},
+				},
+				Service: ServiceState{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "http-30010-al9qy",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31000),
+							TargetPort: intstr.FromInt(31000),
+							NodePort:   int32(31000),
+						},
+					},
+					Resource: apiv1.Service{},
+				},
+			},
+			ErrorMatcher: nil,
+		},
+		{
+			Obj: &ingresstpr.CustomObject{
+				Spec: ingresstpr.Spec{
+					GuestCluster: guestcluster.GuestCluster{
+						ID:        "p1l6x",
+						Namespace: "p1l6x",
+						Service:   "worker",
+					},
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
+							ConfigMap: "ingress-controller",
+							Namespace: "kube-system",
+							Service:   "ingress-controller",
+						},
+					},
+					ProtocolPorts: []protocolport.ProtocolPort{
+						{
+							IngressPort: 30010,
+							Protocol:    "http",
+							LBPort:      31000,
+						},
+						{
+							IngressPort: 30011,
+							Protocol:    "https",
+							LBPort:      31001,
+						},
+						{
+							IngressPort: 30012,
+							Protocol:    "udp",
+							LBPort:      31002,
+						},
+					},
+				},
+			},
+			Expected: OperatorState{
+				ConfigMap: ConfigMapState{
+					Data: map[string]string{
+						"31000": "p1l6x/worker:30010",
+						"31001": "p1l6x/worker:30011",
+						"31002": "p1l6x/worker:30012",
+					},
+					Resource: apiv1.ConfigMap{},
+				},
+				Service: ServiceState{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "http-30010-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31000),
+							TargetPort: intstr.FromInt(31000),
+							NodePort:   int32(31000),
+						},
+						{
+							Name:       "https-30011-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31001),
+							TargetPort: intstr.FromInt(31001),
+							NodePort:   int32(31001),
+						},
+						{
+							Name:       "udp-30012-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+					Resource: apiv1.Service{},
+				},
+			},
+			ErrorMatcher: nil,
+		},
+	}
+
+	var err error
+	var newService *Service
+	{
+		newConfig := DefaultConfig()
+		newService, err = New(newConfig)
+		if err != nil {
+			t.Fatal("expected", nil, "got", err)
+		}
+	}
+
+	for i, testCase := range testCases {
+		result, err := newService.GetDesiredState(testCase.Obj)
+		if err != nil && testCase.ErrorMatcher == nil {
+			t.Fatal("case", i+1, "expected", nil, "got", err)
+		}
+		if testCase.ErrorMatcher != nil && !testCase.ErrorMatcher(err) {
+			t.Fatal("case", i+1, "expected", true, "got", false)
+		}
+		e, ok := result.(OperatorState)
+		if !ok {
+			t.Fatalf("case %d expected %#v got %#v", i+1, true, false)
+		}
+		if !reflect.DeepEqual(testCase.Expected, e) {
+			t.Fatalf("case %d expected %#v got %#v", i+1, testCase.Expected, e)
+		}
+	}
+}

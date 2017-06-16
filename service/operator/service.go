@@ -35,7 +35,7 @@ const (
 	//     http-30010-al9qy
 	//     https-30011-al9qy
 	//
-	ServicePortNameFormat = "%s-%s-%s"
+	ServicePortNameFormat = "%s-%d-%s"
 )
 
 // Config represents the configuration used to create a new service.
@@ -262,6 +262,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 	var dState OperatorState
 
 	{
+		dState.ConfigMap.Data = map[string]string{}
 		for _, p := range customObject.Spec.ProtocolPorts {
 			configMapKey := strconv.Itoa(p.LBPort)
 			configMapValue := fmt.Sprintf(
