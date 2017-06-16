@@ -184,7 +184,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 	s.logger.Log("debug", "get current state", "cluster", customObject.Spec.GuestCluster.ID)
 
 	var err error
-	var cState OperatorState
+	var cState CurrentState
 
 	// Lookup the current state of the configmap.
 	{
@@ -197,23 +197,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 			if err != nil {
 				return nil, microerror.MaskAny(err)
 			}
-			cState.ConfigMap.Resource = *k8sConfigMap
-		}
-
-		for _, p := range customObject.Spec.ProtocolPorts {
-			configMapValue := fmt.Sprintf(
-				ConfigMapValueFormat,
-				customObject.Spec.GuestCluster.Namespace,
-				customObject.Spec.GuestCluster.Service,
-				p.IngressPort,
-			)
-
-			for k, v := range k8sConfigMap.Data {
-				if configMapValue == v {
-					cState.ConfigMap.Data[k] = v
-					break
-				}
-			}
+			cState.ConfigMap = *k8sConfigMap
 		}
 	}
 
@@ -228,23 +212,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 			if err != nil {
 				return nil, microerror.MaskAny(err)
 			}
-			cState.Service.Resource = *k8sService
-		}
-
-		for _, p := range customObject.Spec.ProtocolPorts {
-			servicePortName := fmt.Sprintf(
-				ServicePortNameFormat,
-				p.Protocol,
-				p.IngressPort,
-				customObject.Spec.GuestCluster.ID,
-			)
-
-			for _, p := range k8sService.Spec.Ports {
-				if servicePortName == p.Name {
-					cState.Service.Ports = append(cState.Service.Ports, p)
-					break
-				}
-			}
+			cState.Service = *k8sService
 		}
 	}
 
@@ -259,10 +227,12 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 
 	s.logger.Log("debug", "get desired state", "cluster", customObject.Spec.GuestCluster.ID)
 
-	var dState OperatorState
+	var dState DesiredState
 
+	// Lookup the desired state of the config-map to have a reference of data how
+	// it should be.
 	{
-		dState.ConfigMap.Data = map[string]string{}
+		dState.ConfigMapData = map[string]string{}
 		for _, p := range customObject.Spec.ProtocolPorts {
 			configMapKey := strconv.Itoa(p.LBPort)
 			configMapValue := fmt.Sprintf(
@@ -272,10 +242,12 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 				p.IngressPort,
 			)
 
-			dState.ConfigMap.Data[configMapKey] = configMapValue
+			dState.ConfigMapData[configMapKey] = configMapValue
 		}
 	}
 
+	// Lookup the desired state of the service to have a reference of ports how
+	// they should be.
 	{
 		for _, p := range customObject.Spec.ProtocolPorts {
 			servicePortName := fmt.Sprintf(
@@ -293,7 +265,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 				NodePort:   int32(p.LBPort),
 			}
 
-			dState.Service.Ports = append(dState.Service.Ports, newPort)
+			dState.ServicePorts = append(dState.ServicePorts, newPort)
 		}
 	}
 
@@ -301,7 +273,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 }
 
 func (s *Service) GetEmptyState() interface{} {
-	return OperatorState{}
+	return DesiredState{}
 }
 
 func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (interface{}, error) {
@@ -309,13 +281,13 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 	if !ok {
 		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
 	}
-	cState, ok := currentState.(OperatorState)
+	cState, ok := currentState.(CurrentState)
 	if !ok {
-		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", OperatorState{}, currentState)
+		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", CurrentState{}, currentState)
 	}
-	dState, ok := desiredState.(OperatorState)
+	dState, ok := desiredState.(DesiredState)
 	if !ok {
-		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", OperatorState{}, desiredState)
+		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", DesiredState{}, desiredState)
 	}
 
 	s.logger.Log("debug", "get create state", "cluster", customObject.Spec.GuestCluster.ID)
@@ -323,21 +295,29 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 	var createState ActionState
 
 	// Make sure the current state of the Kubernetes resources is known by the
-	// create and delete actions. The resources we already fetched represent the
-	// source of truth and have to be used to update the resources in the next
-	// steps.
+	// create action. The resources we already fetched represent the source of
+	// truth. They have to be used as base to actually update the resources in the
+	// next steps.
 	{
-		createState.ConfigMap = cState.ConfigMap.Resource
-		createState.Service = cState.Service.Resource
+		createState.ConfigMap = cState.ConfigMap
+		createState.Service = cState.Service
 	}
 
-	// Find anything which is in desired state but not in current state.
-	// Everything we find here is supposed to be created.
+	// Find anything which is in desired state but not in the current state. This
+	// lets us drive the current state towards the desired state, because
+	// everything we find here is supposed to be created. Note that the creation
+	// of config-map data and service ports is always only an update operation
+	// against the Kubernetes API. Anyway, this concept here implements how a real
+	// reconciliation should drive specific parts of the current state towards the
+	// desired state, because a decent reconciliation is not always only an update
+	// operation of existing resources, but e.g. creation of resources. In our
+	// case here we only transform data within resources. Therefore the update.
 	{
 		// Process config-map to find its create state.
 		{
-			for k, v := range dState.ConfigMap.Data {
-				if !inConfigMapData(cState.ConfigMap.Data, k, v) {
+			createState.ConfigMap.Data = map[string]string{}
+			for k, v := range dState.ConfigMapData {
+				if !inConfigMapData(createState.ConfigMap.Data, k, v) {
 					createState.ConfigMap.Data[k] = v
 				}
 			}
@@ -345,8 +325,8 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 
 		// Process service to find its create state.
 		{
-			for _, p := range dState.Service.Ports {
-				if !inServicePorts(cState.Service.Ports, p) {
+			for _, p := range dState.ServicePorts {
+				if !inServicePorts(createState.Service.Spec.Ports, p) {
 					createState.Service.Spec.Ports = append(createState.Service.Spec.Ports, p)
 				}
 			}
@@ -361,13 +341,13 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 	if !ok {
 		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
 	}
-	cState, ok := currentState.(OperatorState)
+	cState, ok := currentState.(CurrentState)
 	if !ok {
-		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", OperatorState{}, currentState)
+		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", CurrentState{}, currentState)
 	}
-	dState, ok := desiredState.(OperatorState)
+	dState, ok := desiredState.(DesiredState)
 	if !ok {
-		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", OperatorState{}, desiredState)
+		return nil, microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", DesiredState{}, desiredState)
 	}
 
 	s.logger.Log("debug", "get delete state", "cluster", customObject.Spec.GuestCluster.ID)
@@ -375,22 +355,29 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 	var deleteState ActionState
 
 	// Make sure the current state of the Kubernetes resources is known by the
-	// create and delete actions. The resources we already fetched represent the
-	// source of truth and have to be used to update the resources in the next
-	// steps.
+	// delete action. The resources we already fetched represent the source of
+	// truth. They have to be used as base to actually update the resources in the
+	// next steps.
 	{
-		deleteState.ConfigMap = cState.ConfigMap.Resource
-		deleteState.Service = cState.Service.Resource
+		deleteState.ConfigMap = cState.ConfigMap
+		deleteState.Service = cState.Service
 	}
 
-	// Find anything which is in current state but not in desired state.
-	// Everything we find here is supposed to be deleted.
+	// Find anything which is in current state but not in the desired state. This
+	// lets us drive the current state towards the desired state, because
+	// everything we find here is supposed to be deleted. Note that the deletion
+	// of config-map data and service ports is always only an update operation
+	// against the Kubernetes API. Anyway, this concept here implements how a real
+	// reconciliation should drive specific parts of the current state towards the
+	// desired state, because a decent reconciliation is not always only an update
+	// operation of existing resources, but e.g. deletion of resources. In our
+	// case here we only transform data within resources. Therefore the update.
 	{
 		// Process config-map to find its delete state.
 		{
 			newData := map[string]string{}
 			for k, v := range cState.ConfigMap.Data {
-				if !inConfigMapData(dState.ConfigMap.Data, k, v) {
+				if !inConfigMapData(dState.ConfigMapData, k, v) {
 					newData[k] = v
 				}
 			}
@@ -400,8 +387,8 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 		// Process service to find its delete state.
 		{
 			var newPorts []apiv1.ServicePort
-			for _, p := range cState.Service.Ports {
-				if !inServicePorts(dState.Service.Ports, p) {
+			for _, p := range cState.Service.Spec.Ports {
+				if !inServicePorts(dState.ServicePorts, p) {
 					newPorts = append(newPorts, p)
 				}
 			}
