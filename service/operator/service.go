@@ -156,6 +156,11 @@ func (s *Service) Boot() {
 }
 
 func (s *Service) addFunc(obj interface{}) {
+	// We lock the addFunc/deleteFunc to make sure only one addFunc/deleteFunc is
+	// executed at a time. addFunc/deleteFunc is not thread safe. This is
+	// important because the source of truth for the ingress-operator are
+	// Kubernetes resources. In case we would run the operator logic in parallel,
+	// we would run into race conditions.
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -166,6 +171,11 @@ func (s *Service) addFunc(obj interface{}) {
 }
 
 func (s *Service) deleteFunc(obj interface{}) {
+	// We lock the addFunc/deleteFunc to make sure only one addFunc/deleteFunc is
+	// executed at a time. addFunc/deleteFunc is not thread safe. This is
+	// important because the source of truth for the ingress-operator are
+	// Kubernetes resources. In case we would run the operator logic in parallel,
+	// we would run into race conditions.
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
