@@ -1,5 +1,5 @@
-hash: 500d5056da9b14c31ea1284cd3bd92d102279ddb2206e77ff1697865a151b8e0
-updated: 2017-06-14T17:51:00.64683041+02:00
+hash: d242be0c63e8fbe32c380e75dcc140ce9e257325978f2095fb20823f60fddc03
+updated: 2017-06-16T17:35:41.711161+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -59,7 +59,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/ingresstpr
-  version: 1deb87368b1227b8a333488c5a5fb5f78032b514
+  version: de88e2fb138546bb804e5616855a2e17b44c78b3
   subpackages:
   - guestcluster
   - hostcluster
@@ -188,7 +188,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207
+  version: 0d0c3d572886e0f2323ed376557f9eb99b97d25b
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg

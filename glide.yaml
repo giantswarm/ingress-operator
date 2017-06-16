@@ -3,7 +3,6 @@ import:
 - package: github.com/giantswarm/microkit
 - package: github.com/giantswarm/operatorkit
 - package: github.com/giantswarm/ingresstpr
-  version: initial
 - package: github.com/juju/errgo
 - package: github.com/spf13/viper
 - package: golang.org/x/net
