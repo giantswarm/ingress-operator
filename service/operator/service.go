@@ -208,6 +208,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 				return nil, microerror.MaskAny(err)
 			}
 			cState.ConfigMap = *k8sConfigMap
+			s.logger.Log("debug", fmt.Sprintf("found k8s config-map: %#v", *k8sConfigMap), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 	}
 
@@ -223,6 +224,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 				return nil, microerror.MaskAny(err)
 			}
 			cState.Service = *k8sService
+			s.logger.Log("debug", fmt.Sprintf("found k8s service: %#v", *k8sService), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 	}
 
@@ -254,6 +256,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 
 			dState.ConfigMapData[configMapKey] = configMapValue
 		}
+		s.logger.Log("debug", fmt.Sprintf("calculated desired state for k8s config-map: %#v", dState.ConfigMapData), "cluster", customObject.Spec.GuestCluster.ID)
 	}
 
 	// Lookup the desired state of the service to have a reference of ports how
@@ -277,6 +280,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 
 			dState.ServicePorts = append(dState.ServicePorts, newPort)
 		}
+		s.logger.Log("debug", fmt.Sprintf("calculated desired state for k8s service: %#v", dState.ServicePorts), "cluster", customObject.Spec.GuestCluster.ID)
 	}
 
 	return dState, nil
@@ -331,6 +335,7 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 					createState.ConfigMap.Data[k] = v
 				}
 			}
+			s.logger.Log("debug", fmt.Sprintf("calculated create state for k8s config-map: %#v", createState.ConfigMap), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 
 		// Process service to find its create state.
@@ -340,6 +345,7 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 					createState.Service.Spec.Ports = append(createState.Service.Spec.Ports, p)
 				}
 			}
+			s.logger.Log("debug", fmt.Sprintf("calculated create state for k8s service: %#v", createState.Service), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 	}
 
@@ -392,6 +398,7 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 				}
 			}
 			deleteState.ConfigMap.Data = newData
+			s.logger.Log("debug", fmt.Sprintf("calculated delete state for k8s config-map: %#v", deleteState.ConfigMap), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 
 		// Process service to find its delete state.
@@ -404,6 +411,7 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 			}
 			deleteState.Service.Spec.Ports = newPorts
 		}
+		s.logger.Log("debug", fmt.Sprintf("calculated delete state for k8s service: %#v", deleteState.Service), "cluster", customObject.Spec.GuestCluster.ID)
 	}
 
 	return deleteState, nil
