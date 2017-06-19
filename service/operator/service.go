@@ -15,6 +15,7 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/operatorkit/client/k8s"
+	"github.com/giantswarm/operatorkit/operator"
 	"github.com/giantswarm/operatorkit/tpr"
 )
 
@@ -166,7 +167,7 @@ func (s *Service) addFunc(obj interface{}) {
 
 	s.logger.Log("debug", "executing the operator's addFunc")
 
-	err := ProcessCreate(obj, s)
+	err := operator.ProcessCreate(obj, s)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "create")
 	}
@@ -183,7 +184,7 @@ func (s *Service) deleteFunc(obj interface{}) {
 
 	s.logger.Log("debug", "executing the operator's deleteFunc")
 
-	err := ProcessDelete(obj, s)
+	err := operator.ProcessDelete(obj, s)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "delete")
 	}
