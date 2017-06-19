@@ -472,20 +472,12 @@ func Test_Service_GetDeleteState(t *testing.T) {
 			Expected: ActionState{
 				ConfigMap: apiv1.ConfigMap{
 					Data: map[string]string{
-						"31000": "al9qy/worker:30010",
+						"31001": "al9qy/worker:30011",
 					},
 				},
 				Service: apiv1.Service{
 					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "http-30010-al9qy",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
-							},
-						},
+						Ports: nil,
 					},
 				},
 			},
@@ -581,19 +573,25 @@ func Test_Service_GetDeleteState(t *testing.T) {
 			Expected: ActionState{
 				ConfigMap: apiv1.ConfigMap{
 					Data: map[string]string{
-						"31000": "p1l6x/worker:30010",
-						"31001": "p1l6x/worker:30011",
+						"31002": "p1l6x/worker:30012",
 					},
 				},
 				Service: apiv1.Service{
 					Spec: apiv1.ServiceSpec{
 						Ports: []apiv1.ServicePort{
 							{
-								Name:       "http-30010-p1l6x",
+								Name:       "https-30011-p1l6x",
 								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
+								Port:       int32(31001),
+								TargetPort: intstr.FromInt(31001),
+								NodePort:   int32(31001),
+							},
+							{
+								Name:       "udp-30012-p1l6x",
+								Protocol:   apiv1.ProtocolTCP,
+								Port:       int32(31002),
+								TargetPort: intstr.FromInt(31002),
+								NodePort:   int32(31002),
 							},
 						},
 					},
