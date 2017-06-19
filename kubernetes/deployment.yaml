@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ingress-operator
+  namespace: giantswarm
+  labels:
+    app: ingress-operator
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ingress-operator
+    spec:
+      volumes:
+      - name: ingress-operator-configmap
+        configMap:
+          name: ingress-operator-configmap
+          items:
+            - key: config.yml
+              path: config.yml
+      containers:
+      - name: ingress-operator
+        image: quay.io/giantswarm/ingress-operator:{{ .BuildInfo.SHA }}
+        volumeMounts:
+        - name: ingress-operator-configmap
+          mountPath: /var/run/ingress-operator/configmap/
+        ports:
+        - name: http
+          containerPort: 8000
+        args:
+        - daemon
+        - --config.dirs=/var/run/ingress-operator/configmap/
+        - --config.files=config
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+          limits:
+            cpu: 250m
+            memory: 200Mi
+      imagePullSecrets:
+      - name: giantswarm-registry
