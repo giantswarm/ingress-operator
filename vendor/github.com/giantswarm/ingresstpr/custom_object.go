@@ -5,8 +5,8 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
-// CustomObject represents the Flannel TPR's custom object. It holds the
-// specifications of the resource the Flannel operator is interested in.
+// CustomObject represents the ingress TPR's custom object. It holds the
+// specifications of the resource the ingress operator is interested in.
 type CustomObject struct {
 	unversioned.TypeMeta `json:",inline"`
 	v1.ObjectMeta        `json:"metadata,omitempty"`

@@ -7,6 +7,6 @@ type GuestCluster struct {
 	// Namespace is the namespace the guest cluster is running in.
 	Namespace string `json:"namespace" yaml:"namespace"`
 	// Service is the name of the service inside a guest cluster namespace,
-	// pointing to the ingress controllers running inside a guest clusters.
+	// pointing to the ingress controllers running inside a guest cluster.
 	Service string `json:"service" yaml:"service"`
 }

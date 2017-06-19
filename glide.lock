@@ -1,5 +1,5 @@
-hash: d242be0c63e8fbe32c380e75dcc140ce9e257325978f2095fb20823f60fddc03
-updated: 2017-06-19T11:51:43.409317098+02:00
+hash: f745bb24b26fd27307f8949d547204374459d890c8304e8230f7e297c674c7b2
+updated: 2017-06-20T00:01:29.453108363+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -40,10 +40,6 @@ imports:
   - health
   - httputil
   - timeutil
-- name: github.com/cpuguy83/go-md2man
-  version: 23709d0847197db6021a51fdb193e66e9222d4e7
-  subpackages:
-  - md2man
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
@@ -63,7 +59,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/ingresstpr
-  version: de88e2fb138546bb804e5616855a2e17b44c78b3
+  version: 90718ecd8a4f7789fc15f50b69e062d5a22cc07f
   subpackages:
   - guestcluster
   - hostcluster
@@ -93,7 +89,7 @@ imports:
   - transaction/context/id
   - transaction/context/tracked
 - name: github.com/giantswarm/operatorkit
-  version: 49ee489bec96186a69277f3b761f605af68708e5
+  version: 5ff4b23bb5ac594fb8999392b1be8aa88fce5425
   subpackages:
   - client/k8s
   - tpr
@@ -205,8 +201,6 @@ imports:
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
-- name: github.com/russross/blackfriday
-  version: 067529f716f4c3f5e37c8c95ddd59df1007290ae
 - name: github.com/spf13/afero
   version: 9be650865eab0c12963d8753212f4f9c66cdcf12
   subpackages:
@@ -214,13 +208,13 @@ imports:
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/spf13/cobra
-  version: 83773614293e6c9406454a53ce5e263500ce6e44
+  version: 99b5d838ca16c25cc4944e323684f8415e8b10ba
 - name: github.com/spf13/jwalterweatherman
   version: 0efa5202c04663c757d84f90f5219c1250baf94f
 - name: github.com/spf13/pflag
-  version: 2300d0f8576fe575f71aaa5b9bbe4e1b0dc2eb51
+  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/spf13/viper
-  version: a1ecfa6a20bd4ef9e9caded262ee1b1b26847675
+  version: c1de95864d73a5465492829d7cb2dd422b19ac96
 - name: github.com/tylerb/graceful
   version: 4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb
 - name: github.com/ugorji/go
