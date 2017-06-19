@@ -329,7 +329,6 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 	{
 		// Process config-map to find its create state.
 		{
-			createState.ConfigMap.Data = map[string]string{}
 			for k, v := range dState.ConfigMapData {
 				if !inConfigMapData(createState.ConfigMap.Data, k, v) {
 					createState.ConfigMap.Data[k] = v
