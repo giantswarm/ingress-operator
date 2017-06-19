@@ -212,6 +212,11 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 			if err != nil {
 				return nil, microerror.MaskAny(err)
 			}
+			// Ensure that the map is assignable. This prevents panics down the road
+			// in case the config-map has no data at all.
+			if len(k8sConfigMap.Data) == 0 {
+				k8sConfigMap.Data = map[string]string{}
+			}
 			cState.ConfigMap = *k8sConfigMap
 			s.logger.Log("debug", fmt.Sprintf("found k8s config-map: %#v", *k8sConfigMap), "cluster", customObject.Spec.GuestCluster.ID)
 		}
