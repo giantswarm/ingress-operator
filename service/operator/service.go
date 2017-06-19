@@ -164,6 +164,8 @@ func (s *Service) addFunc(obj interface{}) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	s.logger.Log("debug", "executing the operator's addFunc")
+
 	err := ProcessCreate(obj, s)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "create")
@@ -178,6 +180,8 @@ func (s *Service) deleteFunc(obj interface{}) {
 	// we would run into race conditions.
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+
+	s.logger.Log("debug", "executing the operator's deleteFunc")
 
 	err := ProcessDelete(obj, s)
 	if err != nil {
