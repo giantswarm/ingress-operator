@@ -214,7 +214,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 			}
 			// Ensure that the map is assignable. This prevents panics down the road
 			// in case the config-map has no data at all.
-			if len(k8sConfigMap.Data) == 0 {
+			if k8sConfigMap.Data == nil {
 				k8sConfigMap.Data = map[string]string{}
 			}
 			cState.ConfigMap = *k8sConfigMap
