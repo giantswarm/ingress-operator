@@ -1,4 +1,4 @@
-package operator
+package configmap
 
 import (
 	"reflect"
