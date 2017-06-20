@@ -1,5 +1,5 @@
-hash: f745bb24b26fd27307f8949d547204374459d890c8304e8230f7e297c674c7b2
-updated: 2017-06-20T00:29:49.034838934+02:00
+hash: d242be0c63e8fbe32c380e75dcc140ce9e257325978f2095fb20823f60fddc03
+updated: 2017-06-20T13:27:47.820241889+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -89,7 +89,7 @@ imports:
   - transaction/context/id
   - transaction/context/tracked
 - name: github.com/giantswarm/operatorkit
-  version: 2fd219854c2f1e9507097d5b3a32f39e5d96d1e2
+  version: e9652668e01e02d4dd9ab114f5bcbd91cc595f7c
   subpackages:
   - client/k8s
   - operator
@@ -195,7 +195,7 @@ imports:
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: b9955ae3561e9f7d5a2c2bc42945bf43500419a9
+  version: 822d4a1f8edcbcbc71e8d1fd6527b12331a6d0ad
   subpackages:
   - xfs
 - name: github.com/PuerkitoBio/purell
@@ -285,7 +285,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: k8s.io/apimachinery
-  version: 2c6e1537d30bb41722183da91db66d1cc3af9c42
+  version: 47e2f36401b7a66b6d003f3df4b58f6769ccc34b
 - name: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
