@@ -15,6 +15,7 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/operatorkit/client/k8s"
+	"github.com/giantswarm/operatorkit/operator"
 	"github.com/giantswarm/operatorkit/tpr"
 )
 
@@ -164,7 +165,9 @@ func (s *Service) addFunc(obj interface{}) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	err := ProcessCreate(obj, s)
+	s.logger.Log("debug", "executing the operator's addFunc")
+
+	err := operator.ProcessCreate(obj, s)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "create")
 	}
@@ -179,7 +182,9 @@ func (s *Service) deleteFunc(obj interface{}) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	err := ProcessDelete(obj, s)
+	s.logger.Log("debug", "executing the operator's deleteFunc")
+
+	err := operator.ProcessDelete(obj, s)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "delete")
 	}
@@ -207,7 +212,13 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 			if err != nil {
 				return nil, microerror.MaskAny(err)
 			}
+			// Ensure that the map is assignable. This prevents panics down the road
+			// in case the config-map has no data at all.
+			if k8sConfigMap.Data == nil {
+				k8sConfigMap.Data = map[string]string{}
+			}
 			cState.ConfigMap = *k8sConfigMap
+			s.logger.Log("debug", fmt.Sprintf("found k8s config-map: %#v", *k8sConfigMap), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 	}
 
@@ -223,6 +234,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 				return nil, microerror.MaskAny(err)
 			}
 			cState.Service = *k8sService
+			s.logger.Log("debug", fmt.Sprintf("found k8s service: %#v", *k8sService), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 	}
 
@@ -254,6 +266,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 
 			dState.ConfigMapData[configMapKey] = configMapValue
 		}
+		s.logger.Log("debug", fmt.Sprintf("calculated desired state for k8s config-map: %#v", dState.ConfigMapData), "cluster", customObject.Spec.GuestCluster.ID)
 	}
 
 	// Lookup the desired state of the service to have a reference of ports how
@@ -277,6 +290,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 
 			dState.ServicePorts = append(dState.ServicePorts, newPort)
 		}
+		s.logger.Log("debug", fmt.Sprintf("calculated desired state for k8s service: %#v", dState.ServicePorts), "cluster", customObject.Spec.GuestCluster.ID)
 	}
 
 	return dState, nil
@@ -325,12 +339,12 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 	{
 		// Process config-map to find its create state.
 		{
-			createState.ConfigMap.Data = map[string]string{}
 			for k, v := range dState.ConfigMapData {
 				if !inConfigMapData(createState.ConfigMap.Data, k, v) {
 					createState.ConfigMap.Data[k] = v
 				}
 			}
+			s.logger.Log("debug", fmt.Sprintf("calculated create state for k8s config-map: %#v", createState.ConfigMap), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 
 		// Process service to find its create state.
@@ -340,6 +354,7 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 					createState.Service.Spec.Ports = append(createState.Service.Spec.Ports, p)
 				}
 			}
+			s.logger.Log("debug", fmt.Sprintf("calculated create state for k8s service: %#v", createState.Service), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 	}
 
@@ -387,23 +402,25 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 		{
 			newData := map[string]string{}
 			for k, v := range deleteState.ConfigMap.Data {
-				if inConfigMapData(dState.ConfigMapData, k, v) {
+				if !inConfigMapData(dState.ConfigMapData, k, v) {
 					newData[k] = v
 				}
 			}
 			deleteState.ConfigMap.Data = newData
+			s.logger.Log("debug", fmt.Sprintf("calculated delete state for k8s config-map: %#v", deleteState.ConfigMap), "cluster", customObject.Spec.GuestCluster.ID)
 		}
 
 		// Process service to find its delete state.
 		{
 			var newPorts []apiv1.ServicePort
 			for _, p := range deleteState.Service.Spec.Ports {
-				if inServicePorts(dState.ServicePorts, p) {
+				if !inServicePorts(dState.ServicePorts, p) {
 					newPorts = append(newPorts, p)
 				}
 			}
 			deleteState.Service.Spec.Ports = newPorts
 		}
+		s.logger.Log("debug", fmt.Sprintf("calculated delete state for k8s service: %#v", deleteState.Service), "cluster", customObject.Spec.GuestCluster.ID)
 	}
 
 	return deleteState, nil
