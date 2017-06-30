@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"sync"
 
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/runtime"
-	"k8s.io/client-go/pkg/util/intstr"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/giantswarm/ingresstpr"
@@ -17,6 +17,7 @@ import (
 	"github.com/giantswarm/operatorkit/client/k8s"
 	"github.com/giantswarm/operatorkit/operator"
 	"github.com/giantswarm/operatorkit/tpr"
+	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -208,7 +209,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 			namespace := customObject.Spec.HostCluster.IngressController.Namespace
 			configMap := customObject.Spec.HostCluster.IngressController.ConfigMap
 
-			k8sConfigMap, err = s.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap)
+			k8sConfigMap, err = s.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap, apismetav1.GetOptions{})
 			if err != nil {
 				return nil, microerror.MaskAny(err)
 			}
@@ -229,7 +230,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 			namespace := customObject.Spec.HostCluster.IngressController.Namespace
 			service := customObject.Spec.HostCluster.IngressController.Service
 
-			k8sService, err = s.k8sClient.CoreV1().Services(namespace).Get(service)
+			k8sService, err = s.k8sClient.CoreV1().Services(namespace).Get(service, apismetav1.GetOptions{})
 			if err != nil {
 				return nil, microerror.MaskAny(err)
 			}

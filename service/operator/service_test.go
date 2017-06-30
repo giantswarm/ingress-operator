@@ -9,8 +9,8 @@ import (
 	"github.com/giantswarm/ingresstpr/hostcluster"
 	"github.com/giantswarm/ingresstpr/hostcluster/ingresscontroller"
 	"github.com/giantswarm/ingresstpr/protocolport"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/util/intstr"
 )
 
 func Test_Service_GetDesiredState(t *testing.T) {
