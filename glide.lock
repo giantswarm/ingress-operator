@@ -1,5 +1,5 @@
 hash: e0f164332aaca441e451f16bbb742fd37f0c1a6ca704c0ba151989280202d6bc
-updated: 2017-06-30T14:10:47.117158752+02:00
+updated: 2017-06-30T15:47:16.062426718+02:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -238,10 +238,6 @@ imports:
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
-- name: k8s.io/api
-  version: 4fe9229aaa9d704f8a2a21cdcd50de2bbb6e1b57
-  subpackages:
-  - core/v1
 - name: k8s.io/apimachinery
   version: 75b8dd260ef0469d96d578705a87cffd0e09dab8
   subpackages:
