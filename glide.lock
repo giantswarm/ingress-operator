@@ -1,5 +1,5 @@
-hash: 79631b0cb96b6d66728427390e392cf78215a8ca6cb8b66a64af4933636a61f9
-updated: 2017-06-30T13:46:49.337937017+02:00
+hash: e0f164332aaca441e451f16bbb742fd37f0c1a6ca704c0ba151989280202d6bc
+updated: 2017-06-30T14:10:47.117158752+02:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -99,7 +99,7 @@ imports:
 - name: github.com/golang/glog
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/golang/protobuf
-  version: 8616e8ee5e20a1704615e6c8d7afcdac06087a67
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
   subpackages:
   - jsonpb
   - proto
@@ -224,7 +224,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/grpc
-  version: d3ddb4469d5a1b949fc7a7da7c1d6a0d1b6de994
+  version: 777daa17ff9b5daef1cfdf915088a2ada3332bf0
   subpackages:
   - codes
   - credentials
