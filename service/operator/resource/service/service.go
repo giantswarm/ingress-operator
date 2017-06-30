@@ -3,14 +3,14 @@ package service
 import (
 	"fmt"
 
-	"k8s.io/client-go/kubernetes"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/util/intstr"
-
 	"github.com/giantswarm/ingresstpr"
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/operatorkit/client/k8s"
+	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/kubernetes"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const (
@@ -97,7 +97,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
 	service := customObject.Spec.HostCluster.IngressController.Service
-	k8sService, err := s.k8sClient.CoreV1().Services(namespace).Get(service)
+	k8sService, err := s.k8sClient.CoreV1().Services(namespace).Get(service, apismetav1.GetOptions{})
 	if err != nil {
 		return nil, microerror.MaskAny(err)
 	}
@@ -137,7 +137,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 		dState = append(dState, newPort)
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", *k8sService), "resource", "service")
+	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", dState), "resource", "service")
 
 	return dState, nil
 }
@@ -173,7 +173,7 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 	// desired state, because a decent reconciliation is not always only an update
 	// operation of existing resources, but e.g. creation of resources. In our
 	// case here we only transform data within resources. Therefore the update.
-	for _, p := range dState.ServicePorts {
+	for _, p := range dState {
 		if !inServicePorts(createState.Spec.Ports, p) {
 			createState.Spec.Ports = append(createState.Spec.Ports, p)
 		}
@@ -257,16 +257,16 @@ func (s *Service) ProcessDeleteState(obj, deleteState interface{}) error {
 	if !ok {
 		return microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
 	}
-	cState, ok := createState.(*apiv1.Service)
+	dState, ok := deleteState.(*apiv1.Service)
 	if !ok {
-		return microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", &apiv1.Service{}, createState)
+		return microerror.MaskAnyf(wrongTypeError, "expected '%T', got '%T'", &apiv1.Service{}, deleteState)
 	}
 
 	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "process delete state", "resource", "service")
 
 	// Add the service ports by updating the Kubernetes service resource.
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
-	_, err := s.k8sClient.CoreV1().Services(namespace).Update(&dState.Service)
+	_, err := s.k8sClient.CoreV1().Services(namespace).Update(dState)
 	if err != nil {
 		return microerror.MaskAny(err)
 	}

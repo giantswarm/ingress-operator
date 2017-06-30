@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strconv"
 
-	"k8s.io/client-go/kubernetes"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
-
 	"github.com/giantswarm/ingresstpr"
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/operatorkit/client/k8s"
+	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const (
@@ -99,7 +99,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 	// Lookup the current state of the configmap.
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
 	configMap := customObject.Spec.HostCluster.IngressController.ConfigMap
-	k8sConfigMap, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap)
+	k8sConfigMap, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap, apismetav1.GetOptions{})
 	if err != nil {
 		return nil, microerror.MaskAny(err)
 	}
@@ -173,7 +173,7 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 	// desired state, because a decent reconciliation is not always only an update
 	// operation of existing resources, but e.g. creation of resources. In our
 	// case here we only transform data within resources. Therefore the update.
-	for k, v := range dState.ConfigMapData {
+	for k, v := range dState {
 		if !inConfigMapData(createState.Data, k, v) {
 			createState.Data[k] = v
 		}

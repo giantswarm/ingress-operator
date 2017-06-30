@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"sync"
 
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/runtime"
-	"k8s.io/client-go/tools/cache"
-
 	"github.com/giantswarm/ingresstpr"
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/operatorkit/client/k8s"
 	"github.com/giantswarm/operatorkit/operator"
 	"github.com/giantswarm/operatorkit/tpr"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/cache"
 )
 
 // Config represents the configuration used to create a new service.
@@ -51,7 +50,7 @@ func DefaultConfig() Config {
 		// Dependencies.
 		K8sClient: k8sClient,
 		Logger:    newLogger,
-		Resource:  nil,
+		Resources: nil,
 	}
 }
 
