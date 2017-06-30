@@ -28,18 +28,18 @@ var (
 		   1 : streaming call.`)
 )
 
-func unaryCaller(client testpb.BenchmarkServiceClient) {
+func unaryCaller(client testpb.TestServiceClient) {
 	benchmark.DoUnaryCall(client, 1, 1)
 }
 
-func streamCaller(stream testpb.BenchmarkService_StreamingCallClient) {
-	benchmark.DoStreamingRoundTrip(stream, 1, 1)
+func streamCaller(client testpb.TestServiceClient, stream testpb.TestService_StreamingCallClient) {
+	benchmark.DoStreamingRoundTrip(client, stream, 1, 1)
 }
 
-func buildConnection() (s *stats.Stats, conn *grpc.ClientConn, tc testpb.BenchmarkServiceClient) {
+func buildConnection() (s *stats.Stats, conn *grpc.ClientConn, tc testpb.TestServiceClient) {
 	s = stats.NewStats(256)
 	conn = benchmark.NewClientConn(*server)
-	tc = testpb.NewBenchmarkServiceClient(conn)
+	tc = testpb.NewTestServiceClient(conn)
 	return s, conn, tc
 }
 
@@ -58,7 +58,7 @@ func closeLoopUnary() {
 
 	for i := 0; i < *maxConcurrentRPCs; i++ {
 		go func() {
-			for range ch {
+			for _ = range ch {
 				start := time.Now()
 				unaryCaller(tc)
 				elapse := time.Since(start)
@@ -107,11 +107,11 @@ func closeLoopStream() {
 			}
 			// Do some warm up.
 			for i := 0; i < 100; i++ {
-				streamCaller(stream)
+				streamCaller(tc, stream)
 			}
 			for range ch {
 				start := time.Now()
-				streamCaller(stream)
+				streamCaller(tc, stream)
 				elapse := time.Since(start)
 				mu.Lock()
 				s.Add(elapse)

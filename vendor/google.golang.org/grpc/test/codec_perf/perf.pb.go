@@ -24,9 +24,7 @@ var _ = math.Inf
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
-// A compilation error at this line likely means your copy of the
-// proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion1
 
 // Buffer is a message that contains a body of bytes that is used to exercise
 // encoding and decoding overheads.
@@ -50,8 +48,6 @@ func (m *Buffer) GetBody() []byte {
 func init() {
 	proto.RegisterType((*Buffer)(nil), "codec.perf.Buffer")
 }
-
-func init() { proto.RegisterFile("perf.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
 	// 73 bytes of a gzipped FileDescriptorProto

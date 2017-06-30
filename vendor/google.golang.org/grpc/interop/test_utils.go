@@ -85,6 +85,7 @@ func DoEmptyUnaryCall(tc testpb.TestServiceClient) {
 	if !proto.Equal(&testpb.Empty{}, reply) {
 		grpclog.Fatalf("/TestService/EmptyCall receives %v, want %v", reply, testpb.Empty{})
 	}
+	grpclog.Println("EmptyUnaryCall done")
 }
 
 // DoLargeUnaryCall performs a unary RPC with large payload in the request and response.
@@ -104,6 +105,7 @@ func DoLargeUnaryCall(tc testpb.TestServiceClient) {
 	if t != testpb.PayloadType_COMPRESSABLE || s != largeRespSize {
 		grpclog.Fatalf("Got the reply with type %d len %d; want %d, %d", t, s, testpb.PayloadType_COMPRESSABLE, largeRespSize)
 	}
+	grpclog.Println("LargeUnaryCall done")
 }
 
 // DoClientStreaming performs a client streaming RPC.
@@ -132,6 +134,7 @@ func DoClientStreaming(tc testpb.TestServiceClient) {
 	if reply.GetAggregatedPayloadSize() != int32(sum) {
 		grpclog.Fatalf("%v.CloseAndRecv().GetAggregatePayloadSize() = %v; want %v", stream, reply.GetAggregatedPayloadSize(), sum)
 	}
+	grpclog.Println("ClientStreaming done")
 }
 
 // DoServerStreaming performs a server streaming RPC.
@@ -176,6 +179,7 @@ func DoServerStreaming(tc testpb.TestServiceClient) {
 	if respCnt != len(respSizes) {
 		grpclog.Fatalf("Got %d reply, want %d", len(respSizes), respCnt)
 	}
+	grpclog.Println("ServerStreaming done")
 }
 
 // DoPingPong performs ping-pong style bi-directional streaming RPC.
@@ -220,6 +224,7 @@ func DoPingPong(tc testpb.TestServiceClient) {
 	if _, err := stream.Recv(); err != io.EOF {
 		grpclog.Fatalf("%v failed to complele the ping pong test: %v", stream, err)
 	}
+	grpclog.Println("Pingpong done")
 }
 
 // DoEmptyStream sets up a bi-directional streaming with zero message.
@@ -234,6 +239,7 @@ func DoEmptyStream(tc testpb.TestServiceClient) {
 	if _, err := stream.Recv(); err != io.EOF {
 		grpclog.Fatalf("%v failed to complete the empty stream test: %v", stream, err)
 	}
+	grpclog.Println("Emptystream done")
 }
 
 // DoTimeoutOnSleepingServer performs an RPC on a sleep server which causes RPC timeout.
@@ -242,6 +248,7 @@ func DoTimeoutOnSleepingServer(tc testpb.TestServiceClient) {
 	stream, err := tc.FullDuplexCall(ctx)
 	if err != nil {
 		if grpc.Code(err) == codes.DeadlineExceeded {
+			grpclog.Println("TimeoutOnSleepingServer done")
 			return
 		}
 		grpclog.Fatalf("%v.FullDuplexCall(_) = _, %v", tc, err)
@@ -257,6 +264,7 @@ func DoTimeoutOnSleepingServer(tc testpb.TestServiceClient) {
 	if _, err := stream.Recv(); grpc.Code(err) != codes.DeadlineExceeded {
 		grpclog.Fatalf("%v.Recv() = _, %v, want error code %d", stream, err, codes.DeadlineExceeded)
 	}
+	grpclog.Println("TimeoutOnSleepingServer done")
 }
 
 // DoComputeEngineCreds performs a unary RPC with compute engine auth.
@@ -281,6 +289,7 @@ func DoComputeEngineCreds(tc testpb.TestServiceClient, serviceAccount, oauthScop
 	if !strings.Contains(oauthScope, scope) {
 		grpclog.Fatalf("Got OAuth scope %q which is NOT a substring of %q.", scope, oauthScope)
 	}
+	grpclog.Println("ComputeEngineCreds done")
 }
 
 func getServiceAccountJSONKey(keyFile string) []byte {
@@ -314,6 +323,7 @@ func DoServiceAccountCreds(tc testpb.TestServiceClient, serviceAccountKeyFile, o
 	if !strings.Contains(oauthScope, scope) {
 		grpclog.Fatalf("Got OAuth scope %q which is NOT a substring of %q.", scope, oauthScope)
 	}
+	grpclog.Println("ServiceAccountCreds done")
 }
 
 // DoJWTTokenCreds performs a unary RPC with JWT token auth.
@@ -334,6 +344,7 @@ func DoJWTTokenCreds(tc testpb.TestServiceClient, serviceAccountKeyFile string) 
 	if !strings.Contains(string(jsonKey), user) {
 		grpclog.Fatalf("Got user name %q which is NOT a substring of %q.", user, jsonKey)
 	}
+	grpclog.Println("JWTtokenCreds done")
 }
 
 // GetToken obtains an OAUTH token from the input.
@@ -373,6 +384,7 @@ func DoOauth2TokenCreds(tc testpb.TestServiceClient, serviceAccountKeyFile, oaut
 	if !strings.Contains(oauthScope, scope) {
 		grpclog.Fatalf("Got OAuth scope %q which is NOT a substring of %q.", scope, oauthScope)
 	}
+	grpclog.Println("Oauth2TokenCreds done")
 }
 
 // DoPerRPCCreds performs a unary RPC with per RPC OAUTH2 token.
@@ -401,6 +413,7 @@ func DoPerRPCCreds(tc testpb.TestServiceClient, serviceAccountKeyFile, oauthScop
 	if !strings.Contains(oauthScope, scope) {
 		grpclog.Fatalf("Got OAuth scope %q which is NOT a substring of %q.", scope, oauthScope)
 	}
+	grpclog.Println("PerRPCCreds done")
 }
 
 var (
@@ -422,6 +435,7 @@ func DoCancelAfterBegin(tc testpb.TestServiceClient) {
 	if grpc.Code(err) != codes.Canceled {
 		grpclog.Fatalf("%v.CloseAndRecv() got error code %d, want %d", stream, grpc.Code(err), codes.Canceled)
 	}
+	grpclog.Println("CancelAfterBegin done")
 }
 
 // DoCancelAfterFirstResponse cancels the RPC after receiving the first message from the server.
@@ -452,41 +466,7 @@ func DoCancelAfterFirstResponse(tc testpb.TestServiceClient) {
 	if _, err := stream.Recv(); grpc.Code(err) != codes.Canceled {
 		grpclog.Fatalf("%v compleled with error code %d, want %d", stream, grpc.Code(err), codes.Canceled)
 	}
-}
-
-// DoStatusCodeAndMessage checks that the status code is propagated back to the client.
-func DoStatusCodeAndMessage(tc testpb.TestServiceClient) {
-	var code int32 = 2
-	msg := "test status message"
-	expectedErr := grpc.Errorf(codes.Code(code), msg)
-	respStatus := &testpb.EchoStatus{
-		Code:    proto.Int32(code),
-		Message: proto.String(msg),
-	}
-	// Test UnaryCall.
-	req := &testpb.SimpleRequest{
-		ResponseStatus: respStatus,
-	}
-	if _, err := tc.UnaryCall(context.Background(), req); err == nil || err.Error() != expectedErr.Error() {
-		grpclog.Fatalf("%v.UnaryCall(_, %v) = _, %v, want _, %v", tc, req, err, expectedErr)
-	}
-	// Test FullDuplexCall.
-	stream, err := tc.FullDuplexCall(context.Background())
-	if err != nil {
-		grpclog.Fatalf("%v.FullDuplexCall(_) = _, %v, want <nil>", tc, err)
-	}
-	streamReq := &testpb.StreamingOutputCallRequest{
-		ResponseStatus: respStatus,
-	}
-	if err := stream.Send(streamReq); err != nil {
-		grpclog.Fatalf("%v.Send(%v) = %v, want <nil>", stream, streamReq, err)
-	}
-	if err := stream.CloseSend(); err != nil {
-		grpclog.Fatalf("%v.CloseSend() = %v, want <nil>", stream, err)
-	}
-	if _, err = stream.Recv(); err.Error() != expectedErr.Error() {
-		grpclog.Fatalf("%v.Recv() returned error %v, want %v", stream, err, expectedErr)
-	}
+	grpclog.Println("CancelAfterFirstResponse done")
 }
 
 type testServer struct {
@@ -520,10 +500,6 @@ func serverNewPayload(t testpb.PayloadType, size int32) (*testpb.Payload, error)
 }
 
 func (s *testServer) UnaryCall(ctx context.Context, in *testpb.SimpleRequest) (*testpb.SimpleResponse, error) {
-	status := in.GetResponseStatus()
-	if status != nil && *status.Code != 0 {
-		return nil, grpc.Errorf(codes.Code(*status.Code), *status.Message)
-	}
 	pl, err := serverNewPayload(in.GetResponseType(), in.GetResponseSize())
 	if err != nil {
 		return nil, err
@@ -578,10 +554,6 @@ func (s *testServer) FullDuplexCall(stream testpb.TestService_FullDuplexCallServ
 		}
 		if err != nil {
 			return err
-		}
-		status := in.GetResponseStatus()
-		if status != nil && *status.Code != 0 {
-			return grpc.Errorf(codes.Code(*status.Code), *status.Message)
 		}
 		cs := in.GetResponseParameters()
 		for _, c := range cs {

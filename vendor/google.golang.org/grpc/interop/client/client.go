@@ -54,7 +54,7 @@ var (
 	defaultServiceAccount = flag.String("default_service_account", "", "Email of GCE default service account")
 	serverHost            = flag.String("server_host", "127.0.0.1", "The server host name")
 	serverPort            = flag.Int("server_port", 10000, "The server port number")
-	tlsServerName         = flag.String("server_host_override", "", "The server name use to verify the hostname returned by TLS handshake if it is not empty. Otherwise, --server_host is used.")
+	tlsServerName         = flag.String("server_host_override", "x.test.youtube.com", "The server name use to verify the hostname returned by TLS handshake if it is not empty. Otherwise, --server_host is used.")
 	testCase              = flag.String("test_case", "large_unary",
 		`Configure different test cases. Valid options are:
         empty_unary : empty (zero bytes) request and response;
@@ -70,8 +70,7 @@ var (
         per_rpc_creds: large_unary with per rpc token;
         oauth2_auth_token: large_unary with oauth2 token auth;
         cancel_after_begin: cancellation after metadata has been sent but before payloads are sent;
-        cancel_after_first_response: cancellation after receiving 1st message from the server;
-        status_code_and_message: status code propagated back to client.`)
+        cancel_after_first_response: cancellation after receiving 1st message from the server.`)
 
 	// The test CA root cert file
 	testCAFile = "testdata/ca.pem"
@@ -86,7 +85,7 @@ func main() {
 		if *tlsServerName != "" {
 			sn = *tlsServerName
 		}
-		var creds credentials.TransportCredentials
+		var creds credentials.TransportAuthenticator
 		if *testCA {
 			var err error
 			creds, err = credentials.NewClientTLSFromFile(testCAFile, sn)
@@ -126,64 +125,47 @@ func main() {
 	switch *testCase {
 	case "empty_unary":
 		interop.DoEmptyUnaryCall(tc)
-		grpclog.Println("EmptyUnaryCall done")
 	case "large_unary":
 		interop.DoLargeUnaryCall(tc)
-		grpclog.Println("LargeUnaryCall done")
 	case "client_streaming":
 		interop.DoClientStreaming(tc)
-		grpclog.Println("ClientStreaming done")
 	case "server_streaming":
 		interop.DoServerStreaming(tc)
-		grpclog.Println("ServerStreaming done")
 	case "ping_pong":
 		interop.DoPingPong(tc)
-		grpclog.Println("Pingpong done")
 	case "empty_stream":
 		interop.DoEmptyStream(tc)
-		grpclog.Println("Emptystream done")
 	case "timeout_on_sleeping_server":
 		interop.DoTimeoutOnSleepingServer(tc)
-		grpclog.Println("TimeoutOnSleepingServer done")
 	case "compute_engine_creds":
 		if !*useTLS {
 			grpclog.Fatalf("TLS is not enabled. TLS is required to execute compute_engine_creds test case.")
 		}
 		interop.DoComputeEngineCreds(tc, *defaultServiceAccount, *oauthScope)
-		grpclog.Println("ComputeEngineCreds done")
 	case "service_account_creds":
 		if !*useTLS {
 			grpclog.Fatalf("TLS is not enabled. TLS is required to execute service_account_creds test case.")
 		}
 		interop.DoServiceAccountCreds(tc, *serviceAccountKeyFile, *oauthScope)
-		grpclog.Println("ServiceAccountCreds done")
 	case "jwt_token_creds":
 		if !*useTLS {
 			grpclog.Fatalf("TLS is not enabled. TLS is required to execute jwt_token_creds test case.")
 		}
 		interop.DoJWTTokenCreds(tc, *serviceAccountKeyFile)
-		grpclog.Println("JWTtokenCreds done")
 	case "per_rpc_creds":
 		if !*useTLS {
 			grpclog.Fatalf("TLS is not enabled. TLS is required to execute per_rpc_creds test case.")
 		}
 		interop.DoPerRPCCreds(tc, *serviceAccountKeyFile, *oauthScope)
-		grpclog.Println("PerRPCCreds done")
 	case "oauth2_auth_token":
 		if !*useTLS {
 			grpclog.Fatalf("TLS is not enabled. TLS is required to execute oauth2_auth_token test case.")
 		}
 		interop.DoOauth2TokenCreds(tc, *serviceAccountKeyFile, *oauthScope)
-		grpclog.Println("Oauth2TokenCreds done")
 	case "cancel_after_begin":
 		interop.DoCancelAfterBegin(tc)
-		grpclog.Println("CancelAfterBegin done")
 	case "cancel_after_first_response":
 		interop.DoCancelAfterFirstResponse(tc)
-		grpclog.Println("CancelAfterFirstResponse done")
-	case "status_code_and_message":
-		interop.DoStatusCodeAndMessage(tc)
-		grpclog.Println("StatusCodeAndMessage done")
 	default:
 		grpclog.Fatal("Unsupported test case: ", *testCase)
 	}
