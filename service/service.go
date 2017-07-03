@@ -9,11 +9,14 @@ import (
 	microerror "github.com/giantswarm/microkit/error"
 	micrologger "github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/operatorkit/client/k8s"
+	operatorkitoperator "github.com/giantswarm/operatorkit/operator"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/giantswarm/ingress-operator/flag"
 	"github.com/giantswarm/ingress-operator/service/operator"
+	"github.com/giantswarm/ingress-operator/service/operator/resource/configmap"
+	"github.com/giantswarm/ingress-operator/service/operator/resource/service"
 	"github.com/giantswarm/ingress-operator/service/version"
 )
 
@@ -86,12 +89,42 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
+	var configMapResource *configmap.Service
+	{
+		operatorConfig := configmap.DefaultConfig()
+
+		operatorConfig.K8sClient = k8sClient
+		operatorConfig.Logger = config.Logger
+
+		configMapResource, err = configmap.New(operatorConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+	}
+
+	var serviceResource *service.Service
+	{
+		operatorConfig := service.DefaultConfig()
+
+		operatorConfig.K8sClient = k8sClient
+		operatorConfig.Logger = config.Logger
+
+		serviceResource, err = service.New(operatorConfig)
+		if err != nil {
+			return nil, microerror.MaskAny(err)
+		}
+	}
+
 	var operatorService *operator.Service
 	{
 		operatorConfig := operator.DefaultConfig()
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
+		operatorConfig.Resources = []operatorkitoperator.Resource{
+			configMapResource,
+			serviceResource,
+		}
 
 		operatorService, err = operator.New(operatorConfig)
 		if err != nil {

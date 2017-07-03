@@ -1,4 +1,4 @@
-package operator
+package configmap
 
 import (
 	"reflect"
@@ -9,14 +9,13 @@ import (
 	"github.com/giantswarm/ingresstpr/hostcluster"
 	"github.com/giantswarm/ingresstpr/hostcluster/ingresscontroller"
 	"github.com/giantswarm/ingresstpr/protocolport"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func Test_Service_GetDesiredState(t *testing.T) {
 	testCases := []struct {
 		Obj          interface{}
-		Expected     DesiredState
+		Expected     map[string]string
 		ErrorMatcher func(error) bool
 	}{
 		{
@@ -43,19 +42,8 @@ func Test_Service_GetDesiredState(t *testing.T) {
 					},
 				},
 			},
-			Expected: DesiredState{
-				ConfigMapData: map[string]string{
-					"31000": "al9qy/worker:30010",
-				},
-				ServicePorts: []apiv1.ServicePort{
-					{
-						Name:       "http-30010-al9qy",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31000),
-						TargetPort: intstr.FromInt(31000),
-						NodePort:   int32(31000),
-					},
-				},
+			Expected: map[string]string{
+				"31000": "al9qy/worker:30010",
 			},
 			ErrorMatcher: nil,
 		},
@@ -93,35 +81,10 @@ func Test_Service_GetDesiredState(t *testing.T) {
 					},
 				},
 			},
-			Expected: DesiredState{
-				ConfigMapData: map[string]string{
-					"31000": "p1l6x/worker:30010",
-					"31001": "p1l6x/worker:30011",
-					"31002": "p1l6x/worker:30012",
-				},
-				ServicePorts: []apiv1.ServicePort{
-					{
-						Name:       "http-30010-p1l6x",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31000),
-						TargetPort: intstr.FromInt(31000),
-						NodePort:   int32(31000),
-					},
-					{
-						Name:       "https-30011-p1l6x",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31001),
-						TargetPort: intstr.FromInt(31001),
-						NodePort:   int32(31001),
-					},
-					{
-						Name:       "udp-30012-p1l6x",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31002),
-						TargetPort: intstr.FromInt(31002),
-						NodePort:   int32(31002),
-					},
-				},
+			Expected: map[string]string{
+				"31000": "p1l6x/worker:30010",
+				"31001": "p1l6x/worker:30011",
+				"31002": "p1l6x/worker:30012",
 			},
 			ErrorMatcher: nil,
 		},
@@ -145,7 +108,7 @@ func Test_Service_GetDesiredState(t *testing.T) {
 		if testCase.ErrorMatcher != nil && !testCase.ErrorMatcher(err) {
 			t.Fatal("case", i+1, "expected", true, "got", false)
 		}
-		e, ok := result.(DesiredState)
+		e, ok := result.(map[string]string)
 		if !ok {
 			t.Fatalf("case %d expected %#v got %#v", i+1, true, false)
 		}
@@ -160,7 +123,7 @@ func Test_Service_GetCreateState(t *testing.T) {
 		Obj          interface{}
 		CurrentState interface{}
 		DesiredState interface{}
-		Expected     ActionState
+		Expected     *apiv1.ConfigMap
 		ErrorMatcher func(error) bool
 	}{
 		// Test case 1.
@@ -188,60 +151,19 @@ func Test_Service_GetCreateState(t *testing.T) {
 					},
 				},
 			},
-			CurrentState: CurrentState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31000": "al9qy/worker:30010",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "http-30010-al9qy",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
-							},
-						},
-					},
+			CurrentState: &apiv1.ConfigMap{
+				Data: map[string]string{
+					"31000": "al9qy/worker:30010",
 				},
 			},
-			DesiredState: DesiredState{
-				ConfigMapData: map[string]string{
+			DesiredState: map[string]string{
+				"31000": "al9qy/worker:30010",
+				"31001": "al9qy/worker:30011",
+			},
+			Expected: &apiv1.ConfigMap{
+				Data: map[string]string{
 					"31000": "al9qy/worker:30010",
 					"31001": "al9qy/worker:30011",
-				},
-				ServicePorts: []apiv1.ServicePort{
-					{
-						Name:       "http-30010-al9qy",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31000),
-						TargetPort: intstr.FromInt(31000),
-						NodePort:   int32(31000),
-					},
-				},
-			},
-			Expected: ActionState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31000": "al9qy/worker:30010",
-						"31001": "al9qy/worker:30011",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "http-30010-al9qy",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
-							},
-						},
-					},
 				},
 			},
 			ErrorMatcher: nil,
@@ -282,91 +204,22 @@ func Test_Service_GetCreateState(t *testing.T) {
 					},
 				},
 			},
-			CurrentState: CurrentState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31000": "p1l6x/worker:30010",
-						"31001": "p1l6x/worker:30011",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "http-30010-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
-							},
-						},
-					},
+			CurrentState: &apiv1.ConfigMap{
+				Data: map[string]string{
+					"31000": "p1l6x/worker:30010",
+					"31001": "p1l6x/worker:30011",
 				},
 			},
-			DesiredState: DesiredState{
-				ConfigMapData: map[string]string{
+			DesiredState: map[string]string{
+				"31000": "p1l6x/worker:30010",
+				"31001": "p1l6x/worker:30011",
+				"31002": "p1l6x/worker:30012",
+			},
+			Expected: &apiv1.ConfigMap{
+				Data: map[string]string{
 					"31000": "p1l6x/worker:30010",
 					"31001": "p1l6x/worker:30011",
 					"31002": "p1l6x/worker:30012",
-				},
-				ServicePorts: []apiv1.ServicePort{
-					{
-						Name:       "http-30010-p1l6x",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31000),
-						TargetPort: intstr.FromInt(31000),
-						NodePort:   int32(31000),
-					},
-					{
-						Name:       "https-30011-p1l6x",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31001),
-						TargetPort: intstr.FromInt(31001),
-						NodePort:   int32(31001),
-					},
-					{
-						Name:       "udp-30012-p1l6x",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31002),
-						TargetPort: intstr.FromInt(31002),
-						NodePort:   int32(31002),
-					},
-				},
-			},
-			Expected: ActionState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31000": "p1l6x/worker:30010",
-						"31001": "p1l6x/worker:30011",
-						"31002": "p1l6x/worker:30012",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "http-30010-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
-							},
-							{
-								Name:       "https-30011-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31001),
-								TargetPort: intstr.FromInt(31001),
-								NodePort:   int32(31001),
-							},
-							{
-								Name:       "udp-30012-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31002),
-								TargetPort: intstr.FromInt(31002),
-								NodePort:   int32(31002),
-							},
-						},
-					},
 				},
 			},
 			ErrorMatcher: nil,
@@ -391,7 +244,7 @@ func Test_Service_GetCreateState(t *testing.T) {
 		if testCase.ErrorMatcher != nil && !testCase.ErrorMatcher(err) {
 			t.Fatal("case", i+1, "expected", true, "got", false)
 		}
-		e, ok := result.(ActionState)
+		e, ok := result.(*apiv1.ConfigMap)
 		if !ok {
 			t.Fatalf("case %d expected %#v got %#v", i+1, true, false)
 		}
@@ -406,7 +259,7 @@ func Test_Service_GetDeleteState(t *testing.T) {
 		Obj          interface{}
 		CurrentState interface{}
 		DesiredState interface{}
-		Expected     ActionState
+		Expected     *apiv1.ConfigMap
 		ErrorMatcher func(error) bool
 	}{
 		// Test case 1.
@@ -434,51 +287,18 @@ func Test_Service_GetDeleteState(t *testing.T) {
 					},
 				},
 			},
-			CurrentState: CurrentState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31000": "al9qy/worker:30010",
-						"31001": "al9qy/worker:30011",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "http-30010-al9qy",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
-							},
-						},
-					},
-				},
-			},
-			DesiredState: DesiredState{
-				ConfigMapData: map[string]string{
+			CurrentState: &apiv1.ConfigMap{
+				Data: map[string]string{
 					"31000": "al9qy/worker:30010",
-				},
-				ServicePorts: []apiv1.ServicePort{
-					{
-						Name:       "http-30010-al9qy",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31000),
-						TargetPort: intstr.FromInt(31000),
-						NodePort:   int32(31000),
-					},
+					"31001": "al9qy/worker:30011",
 				},
 			},
-			Expected: ActionState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31001": "al9qy/worker:30011",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: nil,
-					},
+			DesiredState: map[string]string{
+				"31000": "al9qy/worker:30010",
+			},
+			Expected: &apiv1.ConfigMap{
+				Data: map[string]string{
+					"31001": "al9qy/worker:30011",
 				},
 			},
 			ErrorMatcher: nil,
@@ -519,82 +339,20 @@ func Test_Service_GetDeleteState(t *testing.T) {
 					},
 				},
 			},
-			CurrentState: CurrentState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31000": "p1l6x/worker:30010",
-						"31001": "p1l6x/worker:30011",
-						"31002": "p1l6x/worker:30012",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "http-30010-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31000),
-								TargetPort: intstr.FromInt(31000),
-								NodePort:   int32(31000),
-							},
-							{
-								Name:       "https-30011-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31001),
-								TargetPort: intstr.FromInt(31001),
-								NodePort:   int32(31001),
-							},
-							{
-								Name:       "udp-30012-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31002),
-								TargetPort: intstr.FromInt(31002),
-								NodePort:   int32(31002),
-							},
-						},
-					},
-				},
-			},
-			DesiredState: DesiredState{
-				ConfigMapData: map[string]string{
+			CurrentState: &apiv1.ConfigMap{
+				Data: map[string]string{
 					"31000": "p1l6x/worker:30010",
 					"31001": "p1l6x/worker:30011",
-				},
-				ServicePorts: []apiv1.ServicePort{
-					{
-						Name:       "http-30010-p1l6x",
-						Protocol:   apiv1.ProtocolTCP,
-						Port:       int32(31000),
-						TargetPort: intstr.FromInt(31000),
-						NodePort:   int32(31000),
-					},
+					"31002": "p1l6x/worker:30012",
 				},
 			},
-			Expected: ActionState{
-				ConfigMap: apiv1.ConfigMap{
-					Data: map[string]string{
-						"31002": "p1l6x/worker:30012",
-					},
-				},
-				Service: apiv1.Service{
-					Spec: apiv1.ServiceSpec{
-						Ports: []apiv1.ServicePort{
-							{
-								Name:       "https-30011-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31001),
-								TargetPort: intstr.FromInt(31001),
-								NodePort:   int32(31001),
-							},
-							{
-								Name:       "udp-30012-p1l6x",
-								Protocol:   apiv1.ProtocolTCP,
-								Port:       int32(31002),
-								TargetPort: intstr.FromInt(31002),
-								NodePort:   int32(31002),
-							},
-						},
-					},
+			DesiredState: map[string]string{
+				"31000": "p1l6x/worker:30010",
+				"31001": "p1l6x/worker:30011",
+			},
+			Expected: &apiv1.ConfigMap{
+				Data: map[string]string{
+					"31002": "p1l6x/worker:30012",
 				},
 			},
 			ErrorMatcher: nil,
@@ -619,7 +377,7 @@ func Test_Service_GetDeleteState(t *testing.T) {
 		if testCase.ErrorMatcher != nil && !testCase.ErrorMatcher(err) {
 			t.Fatal("case", i+1, "expected", true, "got", false)
 		}
-		e, ok := result.(ActionState)
+		e, ok := result.(*apiv1.ConfigMap)
 		if !ok {
 			t.Fatalf("case %d expected %#v got %#v", i+1, true, false)
 		}
