@@ -23,7 +23,7 @@ spec:
               path: config.yml
       containers:
       - name: ingress-operator
-        image: quay.io/giantswarm/ingress-operator:{{ .SHA }}
+        image: quay.io/giantswarm/ingress-operator:[[ .SHA ]]
         volumeMounts:
         - name: ingress-operator-configmap
           mountPath: /var/run/ingress-operator/configmap/
