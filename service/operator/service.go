@@ -87,7 +87,6 @@ func New(config Config) (*Service, error) {
 
 	newService := &Service{
 		// Dependencies.
-		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 		resources: config.Resources,
 
@@ -103,7 +102,6 @@ func New(config Config) (*Service, error) {
 // Service implements the service.
 type Service struct {
 	// Dependencies.
-	k8sClient kubernetes.Interface
 	logger    micrologger.Logger
 	resources []operator.Resource
 
