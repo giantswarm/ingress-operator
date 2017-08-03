@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"sync"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microendpoint/service/version"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8s"
-	operatorkitoperator "github.com/giantswarm/operatorkit/operator"
+	"github.com/giantswarm/operatorkit/framework"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 
@@ -17,7 +18,6 @@ import (
 	"github.com/giantswarm/ingress-operator/service/operator"
 	"github.com/giantswarm/ingress-operator/service/operator/resource/configmap"
 	"github.com/giantswarm/ingress-operator/service/operator/resource/service"
-	"github.com/giantswarm/ingress-operator/service/version"
 )
 
 // Config represents the configuration used to create a new service.
@@ -57,16 +57,16 @@ func DefaultConfig() Config {
 func New(config Config) (*Service, error) {
 	// Dependencies.
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "config.Logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "config.Logger must not be empty")
 	}
 	config.Logger.Log("debug", fmt.Sprintf("creating ingress-operator with config: %#v", config))
 
 	// Settings.
 	if config.Flag == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "config.Flag must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "config.Flag must not be empty")
 	}
 	if config.Viper == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "config.Viper must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "config.Viper must not be empty")
 	}
 
 	var err error
@@ -85,7 +85,7 @@ func New(config Config) (*Service, error) {
 		}
 		k8sClient, err = k8s.NewClient(c)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -98,7 +98,7 @@ func New(config Config) (*Service, error) {
 
 		configMapResource, err = configmap.New(operatorConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -111,7 +111,7 @@ func New(config Config) (*Service, error) {
 
 		serviceResource, err = service.New(operatorConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -121,14 +121,14 @@ func New(config Config) (*Service, error) {
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
-		operatorConfig.Resources = []operatorkitoperator.Resource{
+		operatorConfig.Resources = []framework.Resource{
 			configMapResource,
 			serviceResource,
 		}
 
 		operatorService, err = operator.New(operatorConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -143,7 +143,7 @@ func New(config Config) (*Service, error) {
 
 		versionService, err = version.New(versionConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
