@@ -89,6 +89,18 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
+	var operatorFramework *framework.Framework
+	{
+		frameworkConfig := framework.DefaultConfig()
+
+		frameworkConfig.Logger = config.Logger
+
+		operatorFramework, err = framework.New(frameworkConfig)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
 	var configMapResource *configmap.Service
 	{
 		operatorConfig := configmap.DefaultConfig()
@@ -121,6 +133,7 @@ func New(config Config) (*Service, error) {
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
+		operatorConfig.OperatorFramework = operatorFramework
 		operatorConfig.Resources = []framework.Resource{
 			configMapResource,
 			serviceResource,
