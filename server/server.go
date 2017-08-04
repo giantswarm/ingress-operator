@@ -3,14 +3,14 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"sync"
 
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
 	microserver "github.com/giantswarm/microkit/server"
+	"github.com/giantswarm/micrologger"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"golang.org/x/net/context"
 
 	"github.com/giantswarm/ingress-operator/server/endpoint"
 	"github.com/giantswarm/ingress-operator/server/middleware"
@@ -49,7 +49,7 @@ func New(config Config) (microserver.Server, error) {
 		middlewareConfig.Service = config.Service
 		middlewareCollection, err = middleware.New(middlewareConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -61,7 +61,7 @@ func New(config Config) (microserver.Server, error) {
 		endpointConfig.Service = config.Service
 		endpointCollection, err = endpoint.New(endpointConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -114,22 +114,9 @@ func (s *server) Shutdown() {
 
 func (s *server) newErrorEncoder() kithttp.ErrorEncoder {
 	return func(ctx context.Context, err error, w http.ResponseWriter) {
-		switch e := err.(type) {
-		case kithttp.Error:
-			err = e.Err
-
-			switch e.Domain {
-			case kithttp.DomainEncode:
-				w.WriteHeader(http.StatusBadRequest)
-			case kithttp.DomainDecode:
-				w.WriteHeader(http.StatusBadRequest)
-			case kithttp.DomainDo:
-				w.WriteHeader(http.StatusBadRequest)
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		default:
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		rErr := err.(microserver.ResponseError)
+		rErr.SetCode(microserver.CodeInternalError)
+		rErr.SetMessage("An unexpected error occurred. Sorry for the inconvenience.")
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

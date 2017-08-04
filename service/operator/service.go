@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/giantswarm/ingresstpr"
-	microerror "github.com/giantswarm/microkit/error"
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8s"
-	"github.com/giantswarm/operatorkit/operator"
+	"github.com/giantswarm/operatorkit/framework"
 	"github.com/giantswarm/operatorkit/tpr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -18,9 +18,10 @@ import (
 // Config represents the configuration used to create a new service.
 type Config struct {
 	// Dependencies.
-	K8sClient kubernetes.Interface
-	Logger    micrologger.Logger
-	Resources []operator.Resource
+	K8sClient         kubernetes.Interface
+	Logger            micrologger.Logger
+	OperatorFramework *framework.Framework
+	Resources         []framework.Resource
 }
 
 // DefaultConfig provides a default configuration to create a new service by
@@ -58,13 +59,16 @@ func DefaultConfig() Config {
 func New(config Config) (*Service, error) {
 	// Dependencies.
 	if config.K8sClient == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "config.K8sClient must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "config.K8sClient must not be empty")
 	}
 	if config.Logger == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "config.Logger must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "config.Logger must not be empty")
+	}
+	if config.OperatorFramework == nil {
+		return nil, microerror.Maskf(invalidConfigError, "config.OperatorFramework must not be empty")
 	}
 	if len(config.Resources) == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "config.Resources must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "config.Resources must not be empty")
 	}
 
 	var err error
@@ -81,14 +85,15 @@ func New(config Config) (*Service, error) {
 
 		newTPR, err = tpr.New(tprConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
 	newService := &Service{
 		// Dependencies.
-		logger:    config.Logger,
-		resources: config.Resources,
+		logger:            config.Logger,
+		operatorFramework: config.OperatorFramework,
+		resources:         config.Resources,
 
 		// Internals
 		bootOnce: sync.Once{},
@@ -102,8 +107,9 @@ func New(config Config) (*Service, error) {
 // Service implements the service.
 type Service struct {
 	// Dependencies.
-	logger    micrologger.Logger
-	resources []operator.Resource
+	logger            micrologger.Logger
+	operatorFramework *framework.Framework
+	resources         []framework.Resource
 
 	// Internals.
 	bootOnce sync.Once
@@ -148,7 +154,7 @@ func (s *Service) addFunc(obj interface{}) {
 
 	s.logger.Log("debug", "executing the operator's addFunc")
 
-	err := operator.ProcessCreate(obj, s.resources...)
+	err := s.operatorFramework.ProcessCreate(obj, s.resources)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "create")
 	}
@@ -165,7 +171,7 @@ func (s *Service) deleteFunc(obj interface{}) {
 
 	s.logger.Log("debug", "executing the operator's deleteFunc")
 
-	err := operator.ProcessDelete(obj, s.resources...)
+	err := s.operatorFramework.ProcessDelete(obj, s.resources)
 	if err != nil {
 		s.logger.Log("error", fmt.Sprintf("%#v", err), "event", "delete")
 	}

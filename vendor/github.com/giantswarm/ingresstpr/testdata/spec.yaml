@@ -1,0 +1,16 @@
+guestcluster:
+  id: weof7
+  namespace: weof7
+  service: worker
+hostcluster:
+  ingressController:
+    configMap: ingress-nginx-tcp-services
+    namespace: kube-system
+    service: nginx-ingress-controller
+protocolPorts:
+- ingressPort: 30010
+  lbPort: 30034
+  protocol: http
+- ingressPort: 30011
+  lbPort: 30035
+  protocol: https

@@ -1,10 +1,13 @@
 package: github.com/giantswarm/ingress-operator
 import:
 - package: github.com/giantswarm/microkit
+  version: master
+- package: github.com/giantswarm/microendpoint
+  version: master
 - package: github.com/giantswarm/operatorkit
   version: master
 - package: github.com/giantswarm/ingresstpr
-- package: github.com/juju/errgo
+  version: master
 - package: github.com/spf13/viper
 - package: golang.org/x/net
 - package: k8s.io/apimachinery
