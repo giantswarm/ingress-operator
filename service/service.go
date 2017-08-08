@@ -18,6 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/giantswarm/ingress-operator/flag"
+	"github.com/giantswarm/ingress-operator/service/healthz"
 	"github.com/giantswarm/ingress-operator/service/operator"
 	"github.com/giantswarm/ingress-operator/service/resource/configmap"
 	"github.com/giantswarm/ingress-operator/service/resource/service"
@@ -160,6 +161,19 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
+	var healthzService *healthz.Service
+	{
+		healthzConfig := healthz.DefaultConfig()
+
+		healthzConfig.K8sClient = k8sClient
+		healthzConfig.Logger = config.Logger
+
+		healthzService, err = healthz.New(healthzConfig)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
 	var operatorService *operator.Service
 	{
 		operatorConfig := operator.DefaultConfig()
@@ -191,6 +205,7 @@ func New(config Config) (*Service, error) {
 
 	newService := &Service{
 		// Dependencies.
+		Healthz:  healthzService,
 		Operator: operatorService,
 		Version:  versionService,
 
@@ -203,6 +218,7 @@ func New(config Config) (*Service, error) {
 
 type Service struct {
 	// Dependencies.
+	Healthz  *healthz.Service
 	Operator *operator.Service
 	Version  *version.Service
 

@@ -1,7 +1,9 @@
 package endpoint
 
 import (
+	"github.com/giantswarm/microendpoint/endpoint/healthz"
 	"github.com/giantswarm/microendpoint/endpoint/version"
+	healthzservice "github.com/giantswarm/microendpoint/service/healthz"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
@@ -32,6 +34,19 @@ func DefaultConfig() Config {
 func New(config Config) (*Endpoint, error) {
 	var err error
 
+	var healthzEndpoint *healthz.Endpoint
+	{
+		healthzConfig := healthz.DefaultConfig()
+		healthzConfig.Logger = config.Logger
+		healthzConfig.Services = []healthzservice.Service{
+			config.Service.Healthz.K8s,
+		}
+		healthzEndpoint, err = healthz.New(healthzConfig)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
 	var versionEndpoint *version.Endpoint
 	{
 		versionConfig := version.DefaultConfig()
@@ -44,6 +59,7 @@ func New(config Config) (*Endpoint, error) {
 	}
 
 	newEndpoint := &Endpoint{
+		Healthz: healthzEndpoint,
 		Version: versionEndpoint,
 	}
 
@@ -52,5 +68,6 @@ func New(config Config) (*Endpoint, error) {
 
 // Endpoint is the endpoint collection.
 type Endpoint struct {
+	Healthz *healthz.Endpoint
 	Version *version.Endpoint
 }
