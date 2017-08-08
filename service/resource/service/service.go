@@ -7,6 +7,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8s"
+	"github.com/giantswarm/operatorkit/framework"
 	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
@@ -14,6 +15,8 @@ import (
 )
 
 const (
+	// Name is the identifier of the resource.
+	Name = "service"
 	// PortNameFormat is the format string used to create a service port name. It
 	// combines the protocol, the port of the ingress controller within the guest
 	// cluster and the guest cluster ID, in this order. E.g.:
@@ -228,6 +231,10 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 	return deleteState, nil
 }
 
+func (s *Service) Name() string {
+	return Name
+}
+
 func (s *Service) ProcessCreateState(obj, createState interface{}) error {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
@@ -274,6 +281,10 @@ func (s *Service) ProcessDeleteState(obj, deleteState interface{}) error {
 	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "processed delete state", "resource", "service")
 
 	return nil
+}
+
+func (s *Service) Underlying() framework.Resource {
+	return s
 }
 
 func inServicePorts(ports []apiv1.ServicePort, p apiv1.ServicePort) bool {

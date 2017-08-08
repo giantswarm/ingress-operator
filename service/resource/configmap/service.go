@@ -8,6 +8,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8s"
+	"github.com/giantswarm/operatorkit/framework"
 	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
@@ -23,6 +24,8 @@ const (
 	//     namespace/service:30011
 	//
 	DataValueFormat = "%s/%s:%d"
+	// Name is the identifier of the resource.
+	Name = "configmap"
 )
 
 // Config represents the configuration used to create a new config map resource.
@@ -228,6 +231,10 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 	return deleteState, nil
 }
 
+func (s *Service) Name() string {
+	return Name
+}
+
 func (s *Service) ProcessCreateState(obj, createState interface{}) error {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
@@ -276,6 +283,10 @@ func (s *Service) ProcessDeleteState(obj, deleteState interface{}) error {
 	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "processed delete state", "resource", "config-map")
 
 	return nil
+}
+
+func (s *Service) Underlying() framework.Resource {
+	return s
 }
 
 func inConfigMapData(data map[string]string, k, v string) bool {
