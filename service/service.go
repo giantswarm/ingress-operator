@@ -144,17 +144,17 @@ func New(config Config) (*Service, error) {
 			serviceResource,
 		}
 
-		metricsWrapConfig := metricsresource.DefaultWrapConfig()
-		metricsWrapConfig.Namespace = config.Name
-		resources, err = metricsresource.Wrap(resources, metricsWrapConfig)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-
 		retryWrapConfig := retryresource.DefaultWrapConfig()
 		retryWrapConfig.BackOffFactory = func() backoff.BackOff { return backoff.NewExponentialBackOff() }
 		retryWrapConfig.Logger = config.Logger
 		resources, err = retryresource.Wrap(resources, retryWrapConfig)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+
+		metricsWrapConfig := metricsresource.DefaultWrapConfig()
+		metricsWrapConfig.Namespace = config.Name
+		resources, err = metricsresource.Wrap(resources, metricsWrapConfig)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
