@@ -16,8 +16,8 @@ import (
 
 	"github.com/giantswarm/ingress-operator/flag"
 	"github.com/giantswarm/ingress-operator/service/operator"
-	"github.com/giantswarm/ingress-operator/service/operator/resource/configmap"
-	"github.com/giantswarm/ingress-operator/service/operator/resource/service"
+	"github.com/giantswarm/ingress-operator/service/resource/configmap"
+	"github.com/giantswarm/ingress-operator/service/resource/service"
 )
 
 // Config represents the configuration used to create a new service.
