@@ -77,17 +77,15 @@ func New(config Config) (*Service, error) {
 
 	var k8sClient kubernetes.Interface
 	{
-		c := k8s.Config{
-			Logger: config.Logger,
-			TLS: k8s.TLSClientConfig{
-				CAFile:  config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.CaFile),
-				CrtFile: config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.CrtFile),
-				KeyFile: config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.KeyFile),
-			},
-			Address:   config.Viper.GetString(config.Flag.Service.Kubernetes.Address),
-			InCluster: config.Viper.GetBool(config.Flag.Service.Kubernetes.InCluster),
-		}
-		k8sClient, err = k8s.NewClient(c)
+		k8sConfig := k8s.DefaultConfig()
+		k8sConfig.Address = config.Viper.GetString(config.Flag.Service.Kubernetes.Address)
+		k8sConfig.Logger = config.Logger
+		k8sConfig.InCluster = config.Viper.GetBool(config.Flag.Service.Kubernetes.InCluster)
+		k8sConfig.TLS.CAFile = config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.CAFile)
+		k8sConfig.TLS.CrtFile = config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.CrtFile)
+		k8sConfig.TLS.KeyFile = config.Viper.GetString(config.Flag.Service.Kubernetes.TLS.KeyFile)
+
+		k8sClient, err = k8s.NewClient(k8sConfig)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
