@@ -78,6 +78,7 @@ func New(config Config) (*Service, error) {
 	var k8sClient kubernetes.Interface
 	{
 		k8sConfig := k8s.DefaultConfig()
+
 		k8sConfig.Address = config.Viper.GetString(config.Flag.Service.Kubernetes.Address)
 		k8sConfig.Logger = config.Logger
 		k8sConfig.InCluster = config.Viper.GetBool(config.Flag.Service.Kubernetes.InCluster)
