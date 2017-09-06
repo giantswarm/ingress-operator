@@ -231,6 +231,12 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 	return deleteState, nil
 }
 
+// GetUpdateState currently returns nil values because this is a simple resource
+// not concerned with being updated, just fulfilling the resource interface
+func (s *Service) GetUpdateState(obj, currentState, desiredState interface{}) (interface{}, interface{}, interface{}, error) {
+	return nil, nil, nil, nil
+}
+
 func (s *Service) Name() string {
 	return Name
 }
@@ -280,6 +286,13 @@ func (s *Service) ProcessDeleteState(obj, deleteState interface{}) error {
 
 	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "processed delete state", "resource", "service")
 
+	return nil
+}
+
+// ProcessUpdateState currently returns a nil value because this is a simple
+// resource not concerned with being updated, just fulfilling the resource
+// interface
+func (s *Service) ProcessUpdateState(obj, updateState interface{}) error {
 	return nil
 }
 
