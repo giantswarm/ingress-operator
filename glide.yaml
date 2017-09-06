@@ -11,7 +11,7 @@ import:
 - package: github.com/giantswarm/operatorkit
   version: master
 - package: github.com/giantswarm/ingresstpr
-  version: structure
+  version: master
 - package: github.com/spf13/viper
 - package: golang.org/x/net
 - package: k8s.io/apimachinery

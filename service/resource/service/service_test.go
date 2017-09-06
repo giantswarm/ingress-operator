@@ -6,8 +6,10 @@ import (
 
 	"github.com/giantswarm/ingress-operator/tests"
 	"github.com/giantswarm/ingresstpr"
-	"github.com/giantswarm/ingresstpr/spec"
-	"github.com/giantswarm/ingresstpr/spec/hostcluster"
+	"github.com/giantswarm/ingresstpr/guestcluster"
+	"github.com/giantswarm/ingresstpr/hostcluster"
+	"github.com/giantswarm/ingresstpr/hostcluster/ingresscontroller"
+	"github.com/giantswarm/ingresstpr/protocolport"
 	"github.com/giantswarm/micrologger/microloggertest"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
@@ -32,19 +34,19 @@ func Test_Service_GetDesiredState(t *testing.T) {
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
-					GuestCluster: spec.GuestCluster{
+					GuestCluster: guestcluster.GuestCluster{
 						ID:        "al9qy",
 						Namespace: "al9qy",
 						Service:   "worker",
 					},
-					HostCluster: spec.HostCluster{
-						IngressController: hostcluster.IngressController{
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []spec.ProtocolPort{
+					ProtocolPorts: []protocolport.ProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -67,19 +69,19 @@ func Test_Service_GetDesiredState(t *testing.T) {
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
-					GuestCluster: spec.GuestCluster{
+					GuestCluster: guestcluster.GuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: spec.HostCluster{
-						IngressController: hostcluster.IngressController{
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []spec.ProtocolPort{
+					ProtocolPorts: []protocolport.ProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -165,19 +167,19 @@ func Test_Service_GetCreateState(t *testing.T) {
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
-					GuestCluster: spec.GuestCluster{
+					GuestCluster: guestcluster.GuestCluster{
 						ID:        "al9qy",
 						Namespace: "al9qy",
 						Service:   "worker",
 					},
-					HostCluster: spec.HostCluster{
-						IngressController: hostcluster.IngressController{
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []spec.ProtocolPort{
+					ProtocolPorts: []protocolport.ProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -228,19 +230,19 @@ func Test_Service_GetCreateState(t *testing.T) {
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
-					GuestCluster: spec.GuestCluster{
+					GuestCluster: guestcluster.GuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: spec.HostCluster{
-						IngressController: hostcluster.IngressController{
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []spec.ProtocolPort{
+					ProtocolPorts: []protocolport.ProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -366,19 +368,19 @@ func Test_Service_GetDeleteState(t *testing.T) {
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
-					GuestCluster: spec.GuestCluster{
+					GuestCluster: guestcluster.GuestCluster{
 						ID:        "al9qy",
 						Namespace: "al9qy",
 						Service:   "worker",
 					},
-					HostCluster: spec.HostCluster{
-						IngressController: hostcluster.IngressController{
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []spec.ProtocolPort{
+					ProtocolPorts: []protocolport.ProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -421,19 +423,19 @@ func Test_Service_GetDeleteState(t *testing.T) {
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
-					GuestCluster: spec.GuestCluster{
+					GuestCluster: guestcluster.GuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: spec.HostCluster{
-						IngressController: hostcluster.IngressController{
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []spec.ProtocolPort{
+					ProtocolPorts: []protocolport.ProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
