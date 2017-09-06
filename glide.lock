@@ -1,5 +1,5 @@
-hash: c0153a5fd41ce7ba98cd8fe1bdadbfd4361dd7b7d3c85eefe20a5b87aa6851a6
-updated: 2017-09-06T17:50:04.975306032+02:00
+hash: 88a2bcc051f473b486eb15db9ffc1350eeb868e8cfcce7da07d33233315b03e9
+updated: 2017-09-06T18:32:32.278283027+02:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -28,10 +28,12 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/ingresstpr
-  version: 2eaaa90ca5a917fc6d66006038ccd25d93812c08
+  version: 4071b3e1a1d4a26faeb60c7c027d62d80826cca2
   subpackages:
-  - spec
-  - spec/hostcluster
+  - guestcluster
+  - hostcluster
+  - hostcluster/ingresscontroller
+  - protocolport
 - name: github.com/giantswarm/microendpoint
   version: 70547070da4072138bb5161e80a164b0bac075cc
   subpackages:
@@ -61,8 +63,6 @@ imports:
   - transaction/context/tracked
 - name: github.com/giantswarm/micrologger
   version: 8a69b2ab80ba2d0bd40d609206518fefacfc8fdf
-  subpackages:
-  - microloggertest
 - name: github.com/giantswarm/microstorage
   version: f5c68d40459f0021cf8266501b7d8615ea4ff641
 - name: github.com/giantswarm/operatorkit

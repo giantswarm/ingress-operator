@@ -1,4 +1,4 @@
-package hostcluster
+package ingresscontroller
 
 // IngressController holds ingress controller specific information.
 type IngressController struct {

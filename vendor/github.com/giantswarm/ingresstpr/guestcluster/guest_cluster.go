@@ -1,4 +1,4 @@
-package spec
+package guestcluster
 
 // GuestCluster holds guest cluster specific information.
 type GuestCluster struct {

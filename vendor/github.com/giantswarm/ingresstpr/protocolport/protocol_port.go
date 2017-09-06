@@ -1,4 +1,4 @@
-package spec
+package protocolport
 
 // ProtocolPort describes port relationships between ingress controller specific
 // ports and load balancer specific ports.

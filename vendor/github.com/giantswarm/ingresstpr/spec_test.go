@@ -4,8 +4,10 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/giantswarm/ingresstpr/spec"
-	"github.com/giantswarm/ingresstpr/spec/hostcluster"
+	"github.com/giantswarm/ingresstpr/guestcluster"
+	"github.com/giantswarm/ingresstpr/hostcluster"
+	"github.com/giantswarm/ingresstpr/hostcluster/ingresscontroller"
+	"github.com/giantswarm/ingresstpr/protocolport"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/stretchr/testify/require"
 	yaml "gopkg.in/yaml.v2"
@@ -13,19 +15,19 @@ import (
 
 func TestSpecYamlEncoding(t *testing.T) {
 	spec := Spec{
-		GuestCluster: spec.GuestCluster{
+		GuestCluster: guestcluster.GuestCluster{
 			ID:        "weof7",
 			Namespace: "weof7",
 			Service:   "worker",
 		},
-		HostCluster: spec.HostCluster{
-			IngressController: hostcluster.IngressController{
+		HostCluster: hostcluster.HostCluster{
+			IngressController: ingresscontroller.IngressController{
 				ConfigMap: "ingress-nginx-tcp-services",
 				Namespace: "kube-system",
 				Service:   "nginx-ingress-controller",
 			},
 		},
-		ProtocolPorts: []spec.ProtocolPort{
+		ProtocolPorts: []protocolport.ProtocolPort{
 			{
 				IngressPort: 30010,
 				LBPort:      30034,
