@@ -34,17 +34,3 @@ func K8sClient(t *testing.T) kubernetes.Interface {
 
 	return k8sClient
 }
-
-func Logger(t *testing.T) micrologger.Logger {
-	var err error
-	var newLogger micrologger.Logger
-	{
-		config := micrologger.DefaultConfig()
-		newLogger, err = micrologger.New(config)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	return newLogger
-}

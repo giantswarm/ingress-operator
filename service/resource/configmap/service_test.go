@@ -8,12 +8,13 @@ import (
 	"github.com/giantswarm/ingresstpr"
 	"github.com/giantswarm/ingresstpr/spec"
 	"github.com/giantswarm/ingresstpr/spec/hostcluster"
+	"github.com/giantswarm/micrologger/microloggertest"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func testConfig(t *testing.T) Config {
 	k8sClient := tests.K8sClient(t)
-	newLogger := tests.Logger(t)
+	newLogger := microloggertest.New()
 
 	return Config{
 		K8sClient: k8sClient,
