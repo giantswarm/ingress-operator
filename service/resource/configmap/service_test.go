@@ -4,13 +4,25 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/giantswarm/ingress-operator/tests"
 	"github.com/giantswarm/ingresstpr"
 	"github.com/giantswarm/ingresstpr/guestcluster"
 	"github.com/giantswarm/ingresstpr/hostcluster"
 	"github.com/giantswarm/ingresstpr/hostcluster/ingresscontroller"
 	"github.com/giantswarm/ingresstpr/protocolport"
+	"github.com/giantswarm/micrologger/microloggertest"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
+
+func testConfig(t *testing.T) Config {
+	k8sClient := tests.K8sClient(t)
+	newLogger := microloggertest.New()
+
+	return Config{
+		K8sClient: k8sClient,
+		Logger:    newLogger,
+	}
+}
 
 func Test_Service_GetDesiredState(t *testing.T) {
 	testCases := []struct {
@@ -93,7 +105,7 @@ func Test_Service_GetDesiredState(t *testing.T) {
 	var err error
 	var newService *Service
 	{
-		newConfig := DefaultConfig()
+		newConfig := testConfig(t)
 		newService, err = New(newConfig)
 		if err != nil {
 			t.Fatal("expected", nil, "got", err)
@@ -229,7 +241,7 @@ func Test_Service_GetCreateState(t *testing.T) {
 	var err error
 	var newService *Service
 	{
-		newConfig := DefaultConfig()
+		newConfig := testConfig(t)
 		newService, err = New(newConfig)
 		if err != nil {
 			t.Fatal("expected", nil, "got", err)
@@ -362,7 +374,7 @@ func Test_Service_GetDeleteState(t *testing.T) {
 	var err error
 	var newService *Service
 	{
-		newConfig := DefaultConfig()
+		newConfig := testConfig(t)
 		newService, err = New(newConfig)
 		if err != nil {
 			t.Fatal("expected", nil, "got", err)
