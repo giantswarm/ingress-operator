@@ -1,5 +1,5 @@
 hash: 88a2bcc051f473b486eb15db9ffc1350eeb868e8cfcce7da07d33233315b03e9
-updated: 2017-09-06T18:32:32.278283027+02:00
+updated: 2017-09-07T11:07:03.696057931+02:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -63,8 +63,12 @@ imports:
   - transaction/context/tracked
 - name: github.com/giantswarm/micrologger
   version: 8a69b2ab80ba2d0bd40d609206518fefacfc8fdf
+  subpackages:
+  - microloggertest
 - name: github.com/giantswarm/microstorage
   version: f5c68d40459f0021cf8266501b7d8615ea4ff641
+  subpackages:
+  - memory
 - name: github.com/giantswarm/operatorkit
   version: ebba313a2a521c384192e0011959d58682220cb3
   subpackages:
