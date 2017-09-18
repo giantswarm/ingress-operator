@@ -1,6 +1,12 @@
 package framework
 
 import (
+	"context"
+	"fmt"
+	"sync"
+
+	"k8s.io/client-go/tools/cache"
+
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 )
@@ -8,27 +14,27 @@ import (
 // Config represents the configuration used to create a new operator framework.
 type Config struct {
 	// Dependencies.
-	Logger micrologger.Logger
+	Logger    micrologger.Logger
+	Resources []Resource
 }
 
 // DefaultConfig provides a default configuration to create a new operator
 // framework by best effort.
 func DefaultConfig() Config {
-	var err error
-
-	var newLogger micrologger.Logger
-	{
-		config := micrologger.DefaultConfig()
-		newLogger, err = micrologger.New(config)
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	return Config{
 		// Dependencies.
-		Logger: newLogger,
+		Logger:    nil,
+		Resources: nil,
 	}
+}
+
+type Framework struct {
+	// Dependencies.
+	logger    micrologger.Logger
+	resources []Resource
+
+	// Internals.
+	mutex sync.Mutex
 }
 
 // New creates a new configured operator framework.
@@ -37,18 +43,97 @@ func New(config Config) (*Framework, error) {
 	if config.Logger == nil {
 		return nil, microerror.Maskf(invalidConfigError, "config.Logger must not be empty")
 	}
+	if len(config.Resources) == 0 {
+		return nil, microerror.Maskf(invalidConfigError, "config.Resources must not be empty")
+	}
 
 	newFramework := &Framework{
 		// Dependencies.
-		logger: config.Logger,
+		logger:    config.Logger,
+		resources: config.Resources,
+
+		// Internals.
+		mutex: sync.Mutex{},
 	}
 
 	return newFramework, nil
 }
 
-type Framework struct {
-	// Dependencies.
-	logger micrologger.Logger
+// AddFunc executes the framework's ProcessCreate and ProcessUpdate functions,
+// in this order. This guarantees resource creation is always done before
+// resource updates.
+func (f *Framework) AddFunc(obj interface{}) {
+	// We lock the AddFunc/DeleteFunc to make sure only one AddFunc/DeleteFunc is
+	// executed at a time. AddFunc/DeleteFunc is not thread safe. This is
+	// important because the source of truth for an operator are the reconciled
+	// resources. In case we would run the operator logic in parallel, we would
+	// run into race conditions.
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	ctx := context.Background()
+
+	f.logger.Log("debug", "executing the operator's create function")
+
+	err := ProcessCreate(ctx, obj, f.resources)
+	if err != nil {
+		f.logger.Log("error", fmt.Sprintf("%#v", err), "event", "create")
+		return
+	}
+
+	f.logger.Log("debug", "executed the operator's create function")
+
+	f.logger.Log("debug", "executing the operator's update function")
+
+	err = ProcessUpdate(ctx, obj, f.resources)
+	if err != nil {
+		f.logger.Log("error", fmt.Sprintf("%#v", err), "event", "update")
+		return
+	}
+
+	f.logger.Log("debug", "executed the operator's update function")
+}
+
+// DeleteFunc executes the framework's ProcessDelete function.
+func (f *Framework) DeleteFunc(obj interface{}) {
+	// We lock the AddFunc/DeleteFunc to make sure only one AddFunc/DeleteFunc is
+	// executed at a time. AddFunc/DeleteFunc is not thread safe. This is
+	// important because the source of truth for an operator are the reconciled
+	// resources. In case we would run the operator logic in parallel, we would
+	// run into race conditions.
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	ctx := context.Background()
+
+	f.logger.Log("debug", "executing the operator's delete function")
+
+	err := ProcessDelete(ctx, obj, f.resources)
+	if err != nil {
+		f.logger.Log("error", fmt.Sprintf("%#v", err), "event", "delete")
+		return
+	}
+
+	f.logger.Log("debug", "executed the operator's delete function")
+}
+
+// NewCacheResourceEventHandler returns the framework's event handler for the
+// k8s client's cache informer implementation. The event handler has functions
+// registered for the k8s client's add, delete and update events.
+func (f *Framework) NewCacheResourceEventHandler() *cache.ResourceEventHandlerFuncs {
+	newHandler := &cache.ResourceEventHandlerFuncs{
+		AddFunc:    f.AddFunc,
+		DeleteFunc: f.DeleteFunc,
+		UpdateFunc: f.UpdateFunc,
+	}
+
+	return newHandler
+}
+
+// UpdateFunc only redirects to AddFunc and only dispatches the new custom
+// object received.
+func (f *Framework) UpdateFunc(oldObj, newObj interface{}) {
+	f.AddFunc(newObj)
 }
 
 // ProcessCreate is a drop-in for an informer's AddFunc. It receives the custom
@@ -67,28 +152,28 @@ type Framework struct {
 //         AddFunc:    addFunc,
 //     }
 //
-func (f *Framework) ProcessCreate(obj interface{}, resources []Resource) error {
+func ProcessCreate(ctx context.Context, obj interface{}, resources []Resource) error {
 	if len(resources) == 0 {
 		return microerror.Maskf(executionFailedError, "resources must not be empty")
 	}
 
 	for _, r := range resources {
-		currentState, err := r.GetCurrentState(obj)
+		currentState, err := r.GetCurrentState(ctx, obj)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		desiredState, err := r.GetDesiredState(obj)
+		desiredState, err := r.GetDesiredState(ctx, obj)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		createState, err := r.GetCreateState(obj, currentState, desiredState)
+		createState, err := r.GetCreateState(ctx, obj, currentState, desiredState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		err = r.ProcessCreateState(obj, createState)
+		err = r.ProcessCreateState(ctx, obj, createState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
@@ -113,28 +198,28 @@ func (f *Framework) ProcessCreate(obj interface{}, resources []Resource) error {
 //         DeleteFunc:    deleteFunc,
 //     }
 //
-func (f *Framework) ProcessDelete(obj interface{}, resources []Resource) error {
+func ProcessDelete(ctx context.Context, obj interface{}, resources []Resource) error {
 	if len(resources) == 0 {
 		return microerror.Maskf(executionFailedError, "resources must not be empty")
 	}
 
 	for _, r := range resources {
-		currentState, err := r.GetCurrentState(obj)
+		currentState, err := r.GetCurrentState(ctx, obj)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		desiredState, err := r.GetDesiredState(obj)
+		desiredState, err := r.GetDesiredState(ctx, obj)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		deleteState, err := r.GetDeleteState(obj, currentState, desiredState)
+		deleteState, err := r.GetDeleteState(ctx, obj, currentState, desiredState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		err = r.ProcessDeleteState(obj, deleteState)
+		err = r.ProcessDeleteState(ctx, obj, deleteState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
@@ -160,38 +245,38 @@ func (f *Framework) ProcessDelete(obj interface{}, resources []Resource) error {
 //         UpdateFunc:    updateFunc,
 //     }
 //
-func (f *Framework) ProcessUpdate(newObj interface{}, resources []Resource) error {
+func ProcessUpdate(ctx context.Context, obj interface{}, resources []Resource) error {
 	if len(resources) == 0 {
 		return microerror.Maskf(executionFailedError, "resources must not be empty")
 	}
 
 	for _, r := range resources {
-		currentState, err := r.GetCurrentState(newObj)
+		currentState, err := r.GetCurrentState(ctx, obj)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		desiredState, err := r.GetDesiredState(newObj)
+		desiredState, err := r.GetDesiredState(ctx, obj)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		createState, deleteState, updateState, err := r.GetUpdateState(newObj, currentState, desiredState)
+		createState, deleteState, updateState, err := r.GetUpdateState(ctx, obj, currentState, desiredState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		err = r.ProcessCreateState(newObj, createState)
+		err = r.ProcessCreateState(ctx, obj, createState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		err = r.ProcessDeleteState(newObj, deleteState)
+		err = r.ProcessDeleteState(ctx, obj, deleteState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		err = r.ProcessUpdateState(newObj, updateState)
+		err = r.ProcessUpdateState(ctx, obj, updateState)
 		if err != nil {
 			return microerror.Mask(err)
 		}
