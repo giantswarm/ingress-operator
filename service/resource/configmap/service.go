@@ -72,9 +72,9 @@ type Service struct {
 }
 
 func (s *Service) GetCurrentState(ctx context.Context, obj interface{}) (interface{}, error) {
-	customObject, ok := obj.(*ingresstpr.CustomObject)
-	if !ok {
-		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
+	customObject, err := toCustomObject(obj)
+	if err != nil {
+		return microerror.Mask(err), nil
 	}
 
 	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get current state", "resource", "config-map")
@@ -98,9 +98,9 @@ func (s *Service) GetCurrentState(ctx context.Context, obj interface{}) (interfa
 }
 
 func (s *Service) GetDesiredState(ctx context.Context, obj interface{}) (interface{}, error) {
-	customObject, ok := obj.(*ingresstpr.CustomObject)
-	if !ok {
-		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
+	customObject, err := toCustomObject(obj)
+	if err != nil {
+		return microerror.Mask(err), nil
 	}
 
 	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get desired state", "resource", "config-map")
@@ -126,13 +126,13 @@ func (s *Service) GetDesiredState(ctx context.Context, obj interface{}) (interfa
 }
 
 func (s *Service) GetCreateState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
-	customObject, ok := obj.(*ingresstpr.CustomObject)
-	if !ok {
-		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
+	customObject, err := toCustomObject(obj)
+	if err != nil {
+		return microerror.Mask(err), nil
 	}
-	cState, ok := currentState.(*apiv1.ConfigMap)
-	if !ok {
-		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &apiv1.ConfigMap{}, currentState)
+	currentConfigMap, err := toConfigMap(currentState)
+	if err != nil {
+		return microerror.Mask(err), nil
 	}
 	dState, ok := desiredState.(map[string]string)
 	if !ok {
@@ -145,7 +145,7 @@ func (s *Service) GetCreateState(ctx context.Context, obj, currentState, desired
 	// create action. The resources we already fetched represent the source of
 	// truth. They have to be used as base to actually update the resources in the
 	// next steps.
-	createState := cState
+	createState := currentConfigMap
 
 	// Find anything which is in desired state but not in the current state. This
 	// lets us drive the current state towards the desired state, because
@@ -168,13 +168,13 @@ func (s *Service) GetCreateState(ctx context.Context, obj, currentState, desired
 }
 
 func (s *Service) GetDeleteState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
-	customObject, ok := obj.(*ingresstpr.CustomObject)
-	if !ok {
-		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
+	customObject, err := toCustomObject(obj)
+	if err != nil {
+		return microerror.Mask(err), nil
 	}
-	cState, ok := currentState.(*apiv1.ConfigMap)
-	if !ok {
-		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &apiv1.ConfigMap{}, currentState)
+	currentConfigMap, err := toConfigMap(currentState)
+	if err != nil {
+		return microerror.Mask(err), nil
 	}
 	dState, ok := desiredState.(map[string]string)
 	if !ok {
@@ -187,7 +187,7 @@ func (s *Service) GetDeleteState(ctx context.Context, obj, currentState, desired
 	// delete action. The resources we already fetched represent the source of
 	// truth. They have to be used as base to actually update the resources in the
 	// next steps.
-	deleteState := cState
+	deleteState := currentConfigMap
 
 	// Find anything which is in current state but not in the desired state. This
 	// lets us drive the current state towards the desired state, because
@@ -222,51 +222,55 @@ func (s *Service) Name() string {
 }
 
 func (s *Service) ProcessCreateState(ctx context.Context, obj, createState interface{}) error {
-	customObject, ok := obj.(*ingresstpr.CustomObject)
-	if !ok {
-		return microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
+	customObject, err := toCustomObject(obj)
+	if err != nil {
+		return microerror.Mask(err)
 	}
-	cState, ok := createState.(*apiv1.ConfigMap)
-	if !ok {
-		return microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &apiv1.ConfigMap{}, createState)
-	}
-
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "process create state", "resource", "config-map")
-
-	// Add the config map key-value pairs by updating the Kubernetes config map
-	// resource.
-	namespace := customObject.Spec.HostCluster.IngressController.Namespace
-	_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(cState)
+	configMapToCreate, err := toConfigMap(createState)
 	if err != nil {
 		return microerror.Mask(err)
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "processed create state", "resource", "config-map")
+	if configMapToCreate != nil {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "creating the config map data in the Kubernetes API")
+
+		namespace := customObject.Spec.HostCluster.IngressController.Namespace
+		_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToCreate)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "created the config map data in the Kubernetes API")
+	} else {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be created from the Kubernetes API")
+	}
 
 	return nil
 }
 
 func (s *Service) ProcessDeleteState(ctx context.Context, obj, deleteState interface{}) error {
-	customObject, ok := obj.(*ingresstpr.CustomObject)
-	if !ok {
-		return microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
+	customObject, err := toCustomObject(obj)
+	if err != nil {
+		return microerror.Mask(err)
 	}
-	dState, ok := deleteState.(*apiv1.ConfigMap)
-	if !ok {
-		return microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &apiv1.ConfigMap{}, deleteState)
-	}
-
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "process delete state", "resource", "config-map")
-
-	// Add the config map key-value pairs by updating the Kubernetes config map
-	// resource.
-	namespace := customObject.Spec.HostCluster.IngressController.Namespace
-	_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(dState)
+	configMapToDelete, err := toConfigMap(deleteState)
 	if err != nil {
 		return microerror.Mask(err)
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "processed delete state", "resource", "config-map")
+	if configMapToDelete != nil {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the config map data in the Kubernetes API")
+
+		namespace := customObject.Spec.HostCluster.IngressController.Namespace
+		_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToDelete)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the config map data in the Kubernetes API")
+	} else {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be deleted in the Kubernetes API")
+	}
 
 	return nil
 }
@@ -290,4 +294,27 @@ func inConfigMapData(data map[string]string, k, v string) bool {
 	}
 
 	return false
+}
+
+func toCustomObject(v interface{}) (ingresstpr.CustomObject, error) {
+	customObjectPointer, ok := v.(*ingresstpr.CustomObject)
+	if !ok {
+		return ingresstpr.CustomObject{}, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, v)
+	}
+	customObject := *customObjectPointer
+
+	return customObject, nil
+}
+
+func toConfigMap(v interface{}) (*apiv1.ConfigMap, error) {
+	if v == nil {
+		return nil, nil
+	}
+
+	configMaps, ok := v.(*apiv1.ConfigMap)
+	if !ok {
+		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &apiv1.ConfigMap{}, v)
+	}
+
+	return configMaps, nil
 }
