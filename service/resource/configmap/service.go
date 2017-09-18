@@ -231,15 +231,19 @@ func (s *Service) ProcessCreateState(ctx context.Context, obj, createState inter
 		return microerror.Mask(err)
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "creating the config map data in the Kubernetes API")
+	if configMapToCreate != nil {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "creating the config map data in the Kubernetes API")
 
-	namespace := customObject.Spec.HostCluster.IngressController.Namespace
-	_, err = s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToCreate)
-	if err != nil {
-		return microerror.Mask(err)
+		namespace := customObject.Spec.HostCluster.IngressController.Namespace
+		_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToCreate)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "created the config map data in the Kubernetes API")
+	} else {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be created from the Kubernetes API")
 	}
-
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "created the config map data in the Kubernetes API")
 
 	return nil
 }
@@ -254,15 +258,19 @@ func (s *Service) ProcessDeleteState(ctx context.Context, obj, deleteState inter
 		return microerror.Mask(err)
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the config map data in the Kubernetes API")
+	if configMapToDelete != nil {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the config map data in the Kubernetes API")
 
-	namespace := customObject.Spec.HostCluster.IngressController.Namespace
-	_, err = s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToDelete)
-	if err != nil {
-		return microerror.Mask(err)
+		namespace := customObject.Spec.HostCluster.IngressController.Namespace
+		_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToDelete)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the config map data in the Kubernetes API")
+	} else {
+		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be deleted in the Kubernetes API")
 	}
-
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the config map data in the Kubernetes API")
 
 	return nil
 }
