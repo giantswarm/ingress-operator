@@ -104,17 +104,17 @@ func Test_Service_GetDesiredState(t *testing.T) {
 	}
 
 	var err error
-	var newService *Service
+	var newResource *Resource
 	{
 		newConfig := testConfig(t)
-		newService, err = New(newConfig)
+		newResource, err = New(newConfig)
 		if err != nil {
 			t.Fatal("expected", nil, "got", err)
 		}
 	}
 
 	for i, testCase := range testCases {
-		result, err := newService.GetDesiredState(context.TODO(), testCase.Obj)
+		result, err := newResource.GetDesiredState(context.TODO(), testCase.Obj)
 		if err != nil && testCase.ErrorMatcher == nil {
 			t.Fatal("case", i+1, "expected", nil, "got", err)
 		}
@@ -240,17 +240,17 @@ func Test_Service_GetCreateState(t *testing.T) {
 	}
 
 	var err error
-	var newService *Service
+	var newResource *Resource
 	{
 		newConfig := testConfig(t)
-		newService, err = New(newConfig)
+		newResource, err = New(newConfig)
 		if err != nil {
 			t.Fatal("expected", nil, "got", err)
 		}
 	}
 
 	for i, testCase := range testCases {
-		result, err := newService.GetCreateState(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
+		result, err := newResource.GetCreateState(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
 		if err != nil && testCase.ErrorMatcher == nil {
 			t.Fatal("case", i+1, "expected", nil, "got", err)
 		}
@@ -373,17 +373,17 @@ func Test_Service_GetDeleteState(t *testing.T) {
 	}
 
 	var err error
-	var newService *Service
+	var newResource *Resource
 	{
 		newConfig := testConfig(t)
-		newService, err = New(newConfig)
+		newResource, err = New(newConfig)
 		if err != nil {
 			t.Fatal("expected", nil, "got", err)
 		}
 	}
 
 	for i, testCase := range testCases {
-		result, err := newService.GetDeleteState(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
+		result, err := newResource.GetDeleteState(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
 		if err != nil && testCase.ErrorMatcher == nil {
 			t.Fatal("case", i+1, "expected", nil, "got", err)
 		}

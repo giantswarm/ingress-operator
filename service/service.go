@@ -93,7 +93,7 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
-	var configMapResource *configmap.Service
+	var configMapResource framework.Resource
 	{
 		operatorConfig := configmap.DefaultConfig()
 
@@ -106,7 +106,7 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
-	var serviceResource *service.Service
+	var serviceResource framework.Resource
 	{
 		operatorConfig := service.DefaultConfig()
 

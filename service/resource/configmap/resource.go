@@ -45,8 +45,15 @@ func DefaultConfig() Config {
 	}
 }
 
+// Resource implements the config map resource.
+type Resource struct {
+	// Dependencies.
+	k8sClient kubernetes.Interface
+	logger    micrologger.Logger
+}
+
 // New creates a new configured config map resource.
-func New(config Config) (*Service, error) {
+func New(config Config) (*Resource, error) {
 	// Dependencies.
 	if config.K8sClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "config.K8sClient must not be empty")
@@ -55,34 +62,27 @@ func New(config Config) (*Service, error) {
 		return nil, microerror.Maskf(invalidConfigError, "config.Logger must not be empty")
 	}
 
-	newService := &Service{
+	newResource := &Resource{
 		// Dependencies.
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 	}
 
-	return newService, nil
+	return newResource, nil
 }
 
-// Service implements the config map resource.
-type Service struct {
-	// Dependencies.
-	k8sClient kubernetes.Interface
-	logger    micrologger.Logger
-}
-
-func (s *Service) GetCurrentState(ctx context.Context, obj interface{}) (interface{}, error) {
+func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interface{}, error) {
 	customObject, err := toCustomObject(obj)
 	if err != nil {
 		return microerror.Mask(err), nil
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get current state", "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get current state", "resource", "config-map")
 
 	// Lookup the current state of the configmap.
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
 	configMap := customObject.Spec.HostCluster.IngressController.ConfigMap
-	k8sConfigMap, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap, apismetav1.GetOptions{})
+	k8sConfigMap, err := r.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap, apismetav1.GetOptions{})
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -92,18 +92,18 @@ func (s *Service) GetCurrentState(ctx context.Context, obj interface{}) (interfa
 		k8sConfigMap.Data = map[string]string{}
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found k8s state: %#v", *k8sConfigMap), "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found k8s state: %#v", *k8sConfigMap), "resource", "config-map")
 
 	return k8sConfigMap, nil
 }
 
-func (s *Service) GetDesiredState(ctx context.Context, obj interface{}) (interface{}, error) {
+func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) (interface{}, error) {
 	customObject, err := toCustomObject(obj)
 	if err != nil {
 		return microerror.Mask(err), nil
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get desired state", "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get desired state", "resource", "config-map")
 
 	// Lookup the desired state of the config map to have a reference of data how
 	// it should be.
@@ -120,12 +120,12 @@ func (s *Service) GetDesiredState(ctx context.Context, obj interface{}) (interfa
 		dState[configMapKey] = configMapValue
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", dState), "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", dState), "resource", "config-map")
 
 	return dState, nil
 }
 
-func (s *Service) GetCreateState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
+func (r *Resource) GetCreateState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
 	customObject, err := toCustomObject(obj)
 	if err != nil {
 		return microerror.Mask(err), nil
@@ -139,7 +139,7 @@ func (s *Service) GetCreateState(ctx context.Context, obj, currentState, desired
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", map[string]string{}, desiredState)
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get create state", "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get create state", "resource", "config-map")
 
 	// Make sure the current state of the Kubernetes resources is known by the
 	// create action. The resources we already fetched represent the source of
@@ -162,12 +162,12 @@ func (s *Service) GetCreateState(ctx context.Context, obj, currentState, desired
 		}
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found create state: %#v", createState), "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found create state: %#v", createState), "resource", "config-map")
 
 	return createState, nil
 }
 
-func (s *Service) GetDeleteState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
+func (r *Resource) GetDeleteState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
 	customObject, err := toCustomObject(obj)
 	if err != nil {
 		return microerror.Mask(err), nil
@@ -181,7 +181,7 @@ func (s *Service) GetDeleteState(ctx context.Context, obj, currentState, desired
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", map[string]string{}, desiredState)
 	}
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get delete state", "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get delete state", "resource", "config-map")
 
 	// Make sure the current state of the Kubernetes resources is known by the
 	// delete action. The resources we already fetched represent the source of
@@ -206,22 +206,22 @@ func (s *Service) GetDeleteState(ctx context.Context, obj, currentState, desired
 	}
 	deleteState.Data = newData
 
-	s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found delete state: %#v", deleteState), "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found delete state: %#v", deleteState), "resource", "config-map")
 
 	return deleteState, nil
 }
 
 // GetUpdateState currently returns nil values because this is a simple resource
 // not concerned with being updated, just fulfilling the resource interface
-func (s *Service) GetUpdateState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, interface{}, interface{}, error) {
+func (r *Resource) GetUpdateState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, interface{}, interface{}, error) {
 	return nil, nil, nil, nil
 }
 
-func (s *Service) Name() string {
+func (r *Resource) Name() string {
 	return Name
 }
 
-func (s *Service) ProcessCreateState(ctx context.Context, obj, createState interface{}) error {
+func (r *Resource) ProcessCreateState(ctx context.Context, obj, createState interface{}) error {
 	customObject, err := toCustomObject(obj)
 	if err != nil {
 		return microerror.Mask(err)
@@ -232,23 +232,23 @@ func (s *Service) ProcessCreateState(ctx context.Context, obj, createState inter
 	}
 
 	if configMapToCreate != nil {
-		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "creating the config map data in the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "creating the config map data in the Kubernetes API")
 
 		namespace := customObject.Spec.HostCluster.IngressController.Namespace
-		_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToCreate)
+		_, err := r.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToCreate)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "created the config map data in the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "created the config map data in the Kubernetes API")
 	} else {
-		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be created from the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be created from the Kubernetes API")
 	}
 
 	return nil
 }
 
-func (s *Service) ProcessDeleteState(ctx context.Context, obj, deleteState interface{}) error {
+func (r *Resource) ProcessDeleteState(ctx context.Context, obj, deleteState interface{}) error {
 	customObject, err := toCustomObject(obj)
 	if err != nil {
 		return microerror.Mask(err)
@@ -259,17 +259,17 @@ func (s *Service) ProcessDeleteState(ctx context.Context, obj, deleteState inter
 	}
 
 	if configMapToDelete != nil {
-		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the config map data in the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the config map data in the Kubernetes API")
 
 		namespace := customObject.Spec.HostCluster.IngressController.Namespace
-		_, err := s.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToDelete)
+		_, err := r.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToDelete)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the config map data in the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the config map data in the Kubernetes API")
 	} else {
-		s.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be deleted in the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be deleted in the Kubernetes API")
 	}
 
 	return nil
@@ -278,12 +278,12 @@ func (s *Service) ProcessDeleteState(ctx context.Context, obj, deleteState inter
 // ProcessUpdateState currently returns a nil value because this is a simple
 // resource not concerned with being updated, just fulfilling the resource
 // interface
-func (s *Service) ProcessUpdateState(ctx context.Context, obj, updateState interface{}) error {
+func (r *Resource) ProcessUpdateState(ctx context.Context, obj, updateState interface{}) error {
 	return nil
 }
 
-func (s *Service) Underlying() framework.Resource {
-	return s
+func (r *Resource) Underlying() framework.Resource {
+	return r
 }
 
 func inConfigMapData(data map[string]string, k, v string) bool {
