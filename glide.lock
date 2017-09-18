@@ -1,14 +1,14 @@
 hash: 88a2bcc051f473b486eb15db9ffc1350eeb868e8cfcce7da07d33233315b03e9
-updated: 2017-09-07T11:07:03.696057931+02:00
+updated: 2017-09-18T11:14:01.959558081+02:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
 - name: github.com/cenk/backoff
-  version: 61153c768f31ee5f130071d08fc82b85208528de
+  version: 80e08cb804a3eb3e576876c777e957e874609a9a
 - name: github.com/cenkalti/backoff
-  version: 61153c768f31ee5f130071d08fc82b85208528de
+  version: 80e08cb804a3eb3e576876c777e957e874609a9a
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
@@ -35,7 +35,7 @@ imports:
   - hostcluster/ingresscontroller
   - protocolport
 - name: github.com/giantswarm/microendpoint
-  version: 70547070da4072138bb5161e80a164b0bac075cc
+  version: f5682d1d6fe0eb963397fb7e0535c1794644efce
   subpackages:
   - endpoint/healthz
   - endpoint/version
@@ -45,7 +45,7 @@ imports:
 - name: github.com/giantswarm/microerror
   version: 5ade94eb4ee35ef72eb9382228470caeddb29989
 - name: github.com/giantswarm/microkit
-  version: 9c50baa91bd1639e41bc5510b215d9d0801f94ca
+  version: 4871f763488a16c5b7ea3c411bbd82cd5139e29a
   subpackages:
   - command
   - command/daemon
@@ -53,6 +53,7 @@ imports:
   - command/daemon/flag/config
   - command/daemon/flag/server
   - command/daemon/flag/server/listen
+  - command/daemon/flag/server/log
   - command/daemon/flag/server/tls
   - command/version
   - flag
@@ -66,14 +67,15 @@ imports:
   subpackages:
   - microloggertest
 - name: github.com/giantswarm/microstorage
-  version: f5c68d40459f0021cf8266501b7d8615ea4ff641
+  version: e990a46ff7c9065f8d83c0a649cb1a6ef5d411d7
   subpackages:
   - memory
 - name: github.com/giantswarm/operatorkit
-  version: ebba313a2a521c384192e0011959d58682220cb3
+  version: c576223965c9ab394378c2b2c0aec46afc767e5f
   subpackages:
   - client/k8s
   - framework
+  - framework/cancelercontext
   - framework/metricsresource
   - framework/retryresource
   - tpr
@@ -113,7 +115,7 @@ imports:
 - name: github.com/gorilla/mux
   version: 0eeaf8392f5b04950925b8a69fe70f110fa7cbfc
 - name: github.com/hashicorp/hcl
-  version: 8f6b1344a92ff8877cf24a5de9177bf7d0a2a187
+  version: 68e816d1c783414e79bc65b3994d9ab6b0a722ab
   subpackages:
   - hcl/ast
   - hcl/parser
@@ -148,7 +150,7 @@ imports:
 - name: github.com/pelletier/go-toml
   version: 1d6b12b7cb290426e27e6b4e38b89fcda3aeef03
 - name: github.com/prometheus/client_golang
-  version: 00e08dd66dbea933650a515c3ceb71a54337d187
+  version: 50b3332fd63be43e38472600ec187ceec39d26d6
   subpackages:
   - prometheus
   - prometheus/promhttp
@@ -157,7 +159,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: bc8b88226a1210b016e9993b1d75f858c9c8f778
+  version: 2f17f4a9d485bf34b4bfaccc273805040e4f86c8
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg

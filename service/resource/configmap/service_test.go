@@ -1,6 +1,7 @@
 package configmap
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -113,7 +114,7 @@ func Test_Service_GetDesiredState(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		result, err := newService.GetDesiredState(testCase.Obj)
+		result, err := newService.GetDesiredState(context.TODO(), testCase.Obj)
 		if err != nil && testCase.ErrorMatcher == nil {
 			t.Fatal("case", i+1, "expected", nil, "got", err)
 		}
@@ -249,7 +250,7 @@ func Test_Service_GetCreateState(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		result, err := newService.GetCreateState(testCase.Obj, testCase.CurrentState, testCase.DesiredState)
+		result, err := newService.GetCreateState(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
 		if err != nil && testCase.ErrorMatcher == nil {
 			t.Fatal("case", i+1, "expected", nil, "got", err)
 		}
@@ -382,7 +383,7 @@ func Test_Service_GetDeleteState(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		result, err := newService.GetDeleteState(testCase.Obj, testCase.CurrentState, testCase.DesiredState)
+		result, err := newService.GetDeleteState(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
 		if err != nil && testCase.ErrorMatcher == nil {
 			t.Fatal("case", i+1, "expected", nil, "got", err)
 		}

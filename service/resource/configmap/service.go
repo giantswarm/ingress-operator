@@ -1,6 +1,7 @@
 package configmap
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -70,7 +71,7 @@ type Service struct {
 	logger    micrologger.Logger
 }
 
-func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
+func (s *Service) GetCurrentState(ctx context.Context, obj interface{}) (interface{}, error) {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
@@ -96,7 +97,7 @@ func (s *Service) GetCurrentState(obj interface{}) (interface{}, error) {
 	return k8sConfigMap, nil
 }
 
-func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
+func (s *Service) GetDesiredState(ctx context.Context, obj interface{}) (interface{}, error) {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
@@ -124,7 +125,7 @@ func (s *Service) GetDesiredState(obj interface{}) (interface{}, error) {
 	return dState, nil
 }
 
-func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (interface{}, error) {
+func (s *Service) GetCreateState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
@@ -166,7 +167,7 @@ func (s *Service) GetCreateState(obj, currentState, desiredState interface{}) (i
 	return createState, nil
 }
 
-func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (interface{}, error) {
+func (s *Service) GetDeleteState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
@@ -212,7 +213,7 @@ func (s *Service) GetDeleteState(obj, currentState, desiredState interface{}) (i
 
 // GetUpdateState currently returns nil values because this is a simple resource
 // not concerned with being updated, just fulfilling the resource interface
-func (s *Service) GetUpdateState(obj, currentState, desiredState interface{}) (interface{}, interface{}, interface{}, error) {
+func (s *Service) GetUpdateState(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, interface{}, interface{}, error) {
 	return nil, nil, nil, nil
 }
 
@@ -220,7 +221,7 @@ func (s *Service) Name() string {
 	return Name
 }
 
-func (s *Service) ProcessCreateState(obj, createState interface{}) error {
+func (s *Service) ProcessCreateState(ctx context.Context, obj, createState interface{}) error {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
 		return microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
@@ -245,7 +246,7 @@ func (s *Service) ProcessCreateState(obj, createState interface{}) error {
 	return nil
 }
 
-func (s *Service) ProcessDeleteState(obj, deleteState interface{}) error {
+func (s *Service) ProcessDeleteState(ctx context.Context, obj, deleteState interface{}) error {
 	customObject, ok := obj.(*ingresstpr.CustomObject)
 	if !ok {
 		return microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, obj)
@@ -273,7 +274,7 @@ func (s *Service) ProcessDeleteState(obj, deleteState interface{}) error {
 // ProcessUpdateState currently returns a nil value because this is a simple
 // resource not concerned with being updated, just fulfilling the resource
 // interface
-func (s *Service) ProcessUpdateState(obj, updateState interface{}) error {
+func (s *Service) ProcessUpdateState(ctx context.Context, obj, updateState interface{}) error {
 	return nil
 }
 
