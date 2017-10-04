@@ -4,19 +4,31 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
+	"github.com/cenk/backoff"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/giantswarm/operatorkit/framework/cancelercontext"
+	"github.com/giantswarm/operatorkit/framework/canceledcontext"
 )
 
 // Config represents the configuration used to create a new operator framework.
 type Config struct {
 	// Dependencies.
-	Logger    micrologger.Logger
-	Resources []Resource
+
+	BackOff backoff.BackOff
+	// InitCtxFunc is to prepare the given context for a single reconciliation
+	// loop. Operators can implement common context packages to enable
+	// communication between resources. These context packages can be set up
+	// within the context initializer function. InitCtxFunc receives the custom
+	// object being reconciled as second argument. Information provided by the
+	// custom object can be used to initialize the context.
+	InitCtxFunc func(ctx context.Context, obj interface{}) (context.Context, error)
+	Logger      micrologger.Logger
+	Resources   []Resource
 }
 
 // DefaultConfig provides a default configuration to create a new operator
@@ -24,15 +36,19 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger:    nil,
-		Resources: nil,
+		BackOff:     nil,
+		InitCtxFunc: nil,
+		Logger:      nil,
+		Resources:   nil,
 	}
 }
 
 type Framework struct {
 	// Dependencies.
-	logger    micrologger.Logger
-	resources []Resource
+	backOff     backoff.BackOff
+	initializer func(ctx context.Context, obj interface{}) (context.Context, error)
+	logger      micrologger.Logger
+	resources   []Resource
 
 	// Internals.
 	mutex sync.Mutex
@@ -41,6 +57,9 @@ type Framework struct {
 // New creates a new configured operator framework.
 func New(config Config) (*Framework, error) {
 	// Dependencies.
+	if config.BackOff == nil {
+		return nil, microerror.Maskf(invalidConfigError, "config.BackOff must not be empty")
+	}
 	if config.Logger == nil {
 		return nil, microerror.Maskf(invalidConfigError, "config.Logger must not be empty")
 	}
@@ -50,8 +69,10 @@ func New(config Config) (*Framework, error) {
 
 	newFramework := &Framework{
 		// Dependencies.
-		logger:    config.Logger,
-		resources: config.Resources,
+		backOff:     config.BackOff,
+		initializer: config.InitCtxFunc,
+		logger:      config.Logger,
+		resources:   config.Resources,
 
 		// Internals.
 		mutex: sync.Mutex{},
@@ -73,9 +94,18 @@ func (f *Framework) AddFunc(obj interface{}) {
 	defer f.mutex.Unlock()
 
 	ctx := context.Background()
-	ctx = cancelercontext.NewContext(ctx, make(chan struct{}, 1))
+	ctx = canceledcontext.NewContext(ctx, make(chan struct{}))
 
-	f.logger.Log("debug", "executing the operator's create function")
+	if f.initializer != nil {
+		var err error
+		ctx, err = f.initializer(ctx, obj)
+		if err != nil {
+			f.logger.Log("error", fmt.Sprintf("%#v", err), "event", "create")
+			return
+		}
+	}
+
+	f.logger.Log("action", "start", "component", "operatorkit", "function", "ProcessCreate")
 
 	err := ProcessCreate(ctx, obj, f.resources)
 	if err != nil {
@@ -83,9 +113,9 @@ func (f *Framework) AddFunc(obj interface{}) {
 		return
 	}
 
-	f.logger.Log("debug", "executed the operator's create function")
+	f.logger.Log("action", "end", "component", "operatorkit", "function", "ProcessCreate")
 
-	f.logger.Log("debug", "executing the operator's update function")
+	f.logger.Log("action", "start", "component", "operatorkit", "function", "ProcessUpdate")
 
 	err = ProcessUpdate(ctx, obj, f.resources)
 	if err != nil {
@@ -93,7 +123,7 @@ func (f *Framework) AddFunc(obj interface{}) {
 		return
 	}
 
-	f.logger.Log("debug", "executed the operator's update function")
+	f.logger.Log("action", "end", "component", "operatorkit", "function", "ProcessUpdate")
 }
 
 // DeleteFunc executes the framework's ProcessDelete function.
@@ -107,9 +137,18 @@ func (f *Framework) DeleteFunc(obj interface{}) {
 	defer f.mutex.Unlock()
 
 	ctx := context.Background()
-	ctx = cancelercontext.NewContext(ctx, make(chan struct{}, 1))
+	ctx = canceledcontext.NewContext(ctx, make(chan struct{}))
 
-	f.logger.Log("debug", "executing the operator's delete function")
+	if f.initializer != nil {
+		var err error
+		ctx, err = f.initializer(ctx, obj)
+		if err != nil {
+			f.logger.Log("error", fmt.Sprintf("%#v", err), "event", "delete")
+			return
+		}
+	}
+
+	f.logger.Log("action", "start", "component", "operatorkit", "function", "ProcessDelete")
 
 	err := ProcessDelete(ctx, obj, f.resources)
 	if err != nil {
@@ -117,7 +156,7 @@ func (f *Framework) DeleteFunc(obj interface{}) {
 		return
 	}
 
-	f.logger.Log("debug", "executed the operator's delete function")
+	f.logger.Log("action", "end", "component", "operatorkit", "function", "ProcessDelete")
 }
 
 // NewCacheResourceEventHandler returns the framework's event handler for the
@@ -161,7 +200,7 @@ func ProcessCreate(ctx context.Context, obj interface{}, resources []Resource) e
 	}
 
 	for _, r := range resources {
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		currentState, err := r.GetCurrentState(ctx, obj)
@@ -169,7 +208,7 @@ func ProcessCreate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		desiredState, err := r.GetDesiredState(ctx, obj)
@@ -177,7 +216,7 @@ func ProcessCreate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		createState, err := r.GetCreateState(ctx, obj, currentState, desiredState)
@@ -185,7 +224,7 @@ func ProcessCreate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		err = r.ProcessCreateState(ctx, obj, createState)
@@ -219,7 +258,7 @@ func ProcessDelete(ctx context.Context, obj interface{}, resources []Resource) e
 	}
 
 	for _, r := range resources {
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		currentState, err := r.GetCurrentState(ctx, obj)
@@ -227,7 +266,7 @@ func ProcessDelete(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		desiredState, err := r.GetDesiredState(ctx, obj)
@@ -235,7 +274,7 @@ func ProcessDelete(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		deleteState, err := r.GetDeleteState(ctx, obj, currentState, desiredState)
@@ -243,7 +282,7 @@ func ProcessDelete(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		err = r.ProcessDeleteState(ctx, obj, deleteState)
@@ -253,6 +292,36 @@ func ProcessDelete(ctx context.Context, obj interface{}, resources []Resource) e
 	}
 
 	return nil
+}
+
+// ProcessEvents takes the event channels created by the operatorkit informer
+// and executes the framework's event functions accordingly.
+func (f *Framework) ProcessEvents(ctx context.Context, deleteChan chan watch.Event, updateChan chan watch.Event, errChan chan error) {
+	operation := func() error {
+		for {
+			select {
+			case e := <-deleteChan:
+				f.DeleteFunc(e.Object)
+			case e := <-updateChan:
+				f.UpdateFunc(nil, e.Object)
+			case err := <-errChan:
+				return microerror.Mask(err)
+			case <-ctx.Done():
+				return nil
+			}
+		}
+
+		return nil
+	}
+
+	notifier := func(err error, d time.Duration) {
+		f.logger.Log("error", fmt.Sprintf("%#v", err))
+	}
+
+	err := backoff.RetryNotify(operation, f.backOff, notifier)
+	if err != nil {
+		f.logger.Log("error", fmt.Sprintf("%#v", err))
+	}
 }
 
 // ProcessUpdate is a drop-in for an informer's UpdateFunc. It receives the new
@@ -278,7 +347,7 @@ func ProcessUpdate(ctx context.Context, obj interface{}, resources []Resource) e
 	}
 
 	for _, r := range resources {
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		currentState, err := r.GetCurrentState(ctx, obj)
@@ -286,7 +355,7 @@ func ProcessUpdate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		desiredState, err := r.GetDesiredState(ctx, obj)
@@ -294,7 +363,7 @@ func ProcessUpdate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		createState, deleteState, updateState, err := r.GetUpdateState(ctx, obj, currentState, desiredState)
@@ -302,7 +371,7 @@ func ProcessUpdate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		err = r.ProcessCreateState(ctx, obj, createState)
@@ -310,7 +379,7 @@ func ProcessUpdate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		err = r.ProcessDeleteState(ctx, obj, deleteState)
@@ -318,7 +387,7 @@ func ProcessUpdate(ctx context.Context, obj interface{}, resources []Resource) e
 			return microerror.Mask(err)
 		}
 
-		if cancelercontext.IsCanceled(ctx) {
+		if canceledcontext.IsCanceled(ctx) {
 			return nil
 		}
 		err = r.ProcessUpdateState(ctx, obj, updateState)
