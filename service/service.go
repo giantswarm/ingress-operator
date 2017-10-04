@@ -3,6 +3,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -149,10 +150,22 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
+	initCtxFunc := func(ctx context.Context, obj interface{}) (context.Context, error) {
+		return ctx, nil
+	}
+
+	var frameworkBackOff *backoff.ExponentialBackOff
+	{
+		frameworkBackOff = backoff.NewExponentialBackOff()
+		frameworkBackOff.MaxElapsedTime = 5 * time.Minute
+	}
+
 	var operatorFramework *framework.Framework
 	{
 		frameworkConfig := framework.DefaultConfig()
 
+		frameworkConfig.BackOff = frameworkBackOff
+		frameworkConfig.InitCtxFunc = initCtxFunc
 		frameworkConfig.Logger = config.Logger
 		frameworkConfig.Resources = resources
 
