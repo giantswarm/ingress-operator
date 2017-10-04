@@ -2,6 +2,8 @@ package: github.com/giantswarm/ingress-operator
 import:
 - package: github.com/giantswarm/microkit
   version: master
+- package: github.com/giantswarm/k8shealthz
+  version: master
 - package: github.com/giantswarm/microendpoint
   version: master
 - package: github.com/giantswarm/microerror
@@ -12,10 +14,3 @@ import:
   version: master
 - package: github.com/giantswarm/ingresstpr
   version: master
-- package: github.com/spf13/viper
-- package: golang.org/x/net
-- package: k8s.io/apimachinery
-- package: github.com/golang/protobuf
-  version: 8616e8ee5e20a1704615e6c8d7afcdac06087a67
-- package: google.golang.org/grpc
-  version: 777daa17ff9b5daef1cfdf915088a2ada3332bf0
