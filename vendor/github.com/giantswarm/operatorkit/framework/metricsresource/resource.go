@@ -102,6 +102,7 @@ func (r *Resource) GetCreateState(ctx context.Context, obj, currentState, desire
 	o := "GetCreateState"
 
 	defer r.updateMetrics(o, time.Now())
+	r.updateErrorMetrics(o)
 
 	v, err := r.resource.GetCreateState(ctx, obj, currentState, desiredState)
 	if err != nil {
