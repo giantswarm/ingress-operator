@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-operator
+  namespace: giantswarm
+  labels:
+    app: ingress-operator
+  annotations:
+    prometheus.io/scrape: "true"
+spec:
+  ports:
+  - port: 8000
+  selector:
+    app: ingress-operator
