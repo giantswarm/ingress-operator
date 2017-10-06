@@ -116,6 +116,7 @@ func (r *Resource) GetDeleteState(ctx context.Context, obj, currentState, desire
 	o := "GetDeleteState"
 
 	defer r.updateMetrics(o, time.Now())
+	r.updateErrorMetrics(o)
 
 	v, err := r.resource.GetDeleteState(ctx, obj, currentState, desiredState)
 	if err != nil {
