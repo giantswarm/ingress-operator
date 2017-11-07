@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/giantswarm/ingress-operator/tests"
 	"github.com/giantswarm/ingresstpr"
 	"github.com/giantswarm/ingresstpr/guestcluster"
 	"github.com/giantswarm/ingresstpr/hostcluster"
@@ -13,18 +12,9 @@ import (
 	"github.com/giantswarm/ingresstpr/protocolport"
 	"github.com/giantswarm/micrologger/microloggertest"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/kubernetes/fake"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
-
-func testConfig(t *testing.T) Config {
-	k8sClient := tests.K8sClient(t)
-	newLogger := microloggertest.New()
-
-	return Config{
-		K8sClient: k8sClient,
-		Logger:    newLogger,
-	}
-}
 
 func Test_Service_GetDesiredState(t *testing.T) {
 	testCases := []struct {
@@ -540,5 +530,12 @@ func Test_Service_newDeleteChange(t *testing.T) {
 		if !reflect.DeepEqual(testCase.Expected, e) {
 			t.Fatalf("case %d expected %#v got %#v", i+1, testCase.Expected, e)
 		}
+	}
+}
+
+func testConfig(t *testing.T) Config {
+	return Config{
+		K8sClient: fake.NewSimpleClientset(),
+		Logger:    microloggertest.New(),
 	}
 }
