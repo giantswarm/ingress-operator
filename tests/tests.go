@@ -4,29 +4,32 @@ import (
 	"testing"
 
 	"github.com/giantswarm/micrologger"
-	"github.com/giantswarm/operatorkit/client/k8s"
+	"github.com/giantswarm/operatorkit/client/k8sclient"
 	"k8s.io/client-go/kubernetes"
 )
 
 func K8sClient(t *testing.T) kubernetes.Interface {
 	var err error
 
-	var k8sClient kubernetes.Interface
+	var newLogger micrologger.Logger
 	{
-		var newLogger micrologger.Logger
+		c := micrologger.DefaultConfig()
 
-		loggerConfig := micrologger.DefaultConfig()
-		newLogger, err = micrologger.New(loggerConfig)
+		newLogger, err = micrologger.New(c)
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
 
-		config := k8s.Config{
-			Logger:    newLogger,
-			Address:   "http://127.0.0.1:8080",
-			InCluster: false,
-		}
-		k8sClient, err = k8s.NewClient(config)
+	var k8sClient kubernetes.Interface
+	{
+		c := k8sclient.DefaultConfig()
+
+		c.Address = "http://127.0.0.1:8080"
+		c.Logger = newLogger
+		c.InCluster = false
+
+		k8sClient, err = k8sclient.New(c)
 		if err != nil {
 			t.Fatal(err)
 		}
