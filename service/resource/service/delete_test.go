@@ -352,6 +352,95 @@ func Test_Service_newDeleteChange(t *testing.T) {
 			},
 			ErrorMatcher: nil,
 		},
+
+		// Test 4 is the same as 3 but with port names.
+		{
+			Obj: &ingresstpr.CustomObject{
+				Spec: ingresstpr.Spec{
+					GuestCluster: guestcluster.GuestCluster{
+						ID:        "p1l6x",
+						Namespace: "p1l6x",
+						Service:   "worker",
+					},
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
+							ConfigMap: "ingress-controller",
+							Namespace: "kube-system",
+							Service:   "ingress-controller",
+						},
+					},
+					ProtocolPorts: []protocolport.ProtocolPort{
+						{
+							IngressPort: 30010,
+							Protocol:    "http",
+							LBPort:      31000,
+						},
+						{
+							IngressPort: 30011,
+							Protocol:    "https",
+							LBPort:      31001,
+						},
+					},
+				},
+			},
+			CurrentState: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "http-30010-foo",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31000),
+							TargetPort: intstr.FromInt(31000),
+							NodePort:   int32(31000),
+						},
+						{
+							Name:       "https-30011-bar",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31001),
+							TargetPort: intstr.FromInt(31001),
+							NodePort:   int32(31001),
+						},
+						{
+							Name:       "udp-30012-baz",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+				},
+			},
+			DesiredState: []apiv1.ServicePort{
+				{
+					Name:       "http-30010-foo",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31000),
+					TargetPort: intstr.FromInt(31000),
+					NodePort:   int32(31000),
+				},
+				{
+					Name:       "https-30011-bar",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31001),
+					TargetPort: intstr.FromInt(31001),
+					NodePort:   int32(31001),
+				},
+			},
+			Expected: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "udp-30012-baz",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+				},
+			},
+			ErrorMatcher: nil,
+		},
 	}
 
 	var err error
