@@ -62,7 +62,7 @@ func (r *Resource) newDeleteChange(ctx context.Context, obj, currentState, desir
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", []apiv1.ServicePort{}, desiredState)
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get delete state", "resource", "service")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get delete state")
 
 	// Make sure the current state of the Kubernetes resources is known by the
 	// delete action. The resources we already fetched represent the source of
@@ -87,7 +87,7 @@ func (r *Resource) newDeleteChange(ctx context.Context, obj, currentState, desir
 	}
 	deleteState.Spec.Ports = newPorts
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found delete state: %#v", deleteState), "resource", "service")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found delete state: %#v", deleteState))
 
 	return deleteState, nil
 }

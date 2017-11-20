@@ -62,7 +62,7 @@ func (r *Resource) newUpdateChange(ctx context.Context, obj, currentState, desir
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", []apiv1.ServicePort{}, desiredState)
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get update state", "resource", "service")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get update state")
 
 	var updateState *apiv1.Service
 	{
@@ -75,7 +75,7 @@ func (r *Resource) newUpdateChange(ctx context.Context, obj, currentState, desir
 		}
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found update state: %#v", updateState), "resource", "service")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found update state: %#v", updateState))
 
 	return updateState, nil
 }
