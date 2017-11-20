@@ -83,6 +83,16 @@ func inServicePorts(ports []apiv1.ServicePort, p apiv1.ServicePort) bool {
 	return false
 }
 
+func getServicePortByPort(list []apiv1.ServicePort, item int32) (apiv1.ServicePort, error) {
+	for _, p := range list {
+		if p.Port == item {
+			return p, nil
+		}
+	}
+
+	return apiv1.ServicePort{}, microerror.Maskf(servicePortNotFoundError, "no service port with port '%d'", item)
+}
+
 func toCustomObject(v interface{}) (ingresstpr.CustomObject, error) {
 	customObjectPointer, ok := v.(*ingresstpr.CustomObject)
 	if !ok {
