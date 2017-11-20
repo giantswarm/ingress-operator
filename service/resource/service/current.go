@@ -14,7 +14,7 @@ func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interf
 		return microerror.Mask(err), nil
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get current state", "resource", "service")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get current state")
 
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
 	service := customObject.Spec.HostCluster.IngressController.Service
@@ -23,7 +23,7 @@ func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interf
 		return nil, microerror.Mask(err)
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found k8s state: %#v", *k8sService), "resource", "service")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found k8s state: %#v", *k8sService))
 
 	return k8sService, nil
 }
