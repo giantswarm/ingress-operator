@@ -14,6 +14,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8sclient"
 	"github.com/giantswarm/operatorkit/framework"
+	"github.com/giantswarm/operatorkit/framework/resource/logresource"
 	"github.com/giantswarm/operatorkit/framework/resource/metricsresource"
 	"github.com/giantswarm/operatorkit/framework/resource/retryresource"
 	"github.com/giantswarm/operatorkit/informer"
@@ -26,6 +27,10 @@ import (
 	"github.com/giantswarm/ingress-operator/service/healthz"
 	"github.com/giantswarm/ingress-operator/service/resource/configmap"
 	"github.com/giantswarm/ingress-operator/service/resource/service"
+)
+
+const (
+	ResourceRetries uint64 = 3
 )
 
 // Config represents the configuration used to create a new service.
@@ -126,13 +131,6 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
-	// We create the list of resources and wrap each resource around some common
-	// resources like metrics and retry resources.
-	//
-	// NOTE that the retry resources wrap the underlying resources first. The
-	// wrapped resources are then wrapped around the metrics resource. That way
-	// the metrics also consider execution times and execution attempts including
-	// retries.
 	var resources []framework.Resource
 	{
 		resources = []framework.Resource{
@@ -140,8 +138,15 @@ func New(config Config) (*Service, error) {
 			serviceResource,
 		}
 
+		logWrapConfig := logresource.DefaultWrapConfig()
+		logWrapConfig.Logger = config.Logger
+		resources, err = logresource.Wrap(resources, logWrapConfig)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+
 		retryWrapConfig := retryresource.DefaultWrapConfig()
-		retryWrapConfig.BackOffFactory = func() backoff.BackOff { return backoff.NewExponentialBackOff() }
+		retryWrapConfig.BackOffFactory = func() backoff.BackOff { return backoff.WithMaxTries(backoff.NewExponentialBackOff(), ResourceRetries) }
 		retryWrapConfig.Logger = config.Logger
 		resources, err = retryresource.Wrap(resources, retryWrapConfig)
 		if err != nil {
