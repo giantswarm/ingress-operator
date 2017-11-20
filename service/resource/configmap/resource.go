@@ -60,7 +60,7 @@ func New(config Config) (*Resource, error) {
 	newResource := &Resource{
 		// Dependencies.
 		k8sClient: config.K8sClient,
-		logger:    config.Logger,
+		logger:    config.Logger.With("resource", Name),
 	}
 
 	return newResource, nil
