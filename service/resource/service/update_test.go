@@ -16,7 +16,7 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
-func Test_Service_newCreateChange(t *testing.T) {
+func Test_Service_newUpdateChange(t *testing.T) {
 	testCases := []struct {
 		Obj          interface{}
 		CurrentState interface{}
@@ -204,7 +204,7 @@ func Test_Service_newCreateChange(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		result, err := newResource.newCreateChange(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
+		result, err := newResource.newUpdateChange(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
 		if err != nil && testCase.ErrorMatcher == nil {
 			t.Fatal("case", i+1, "expected", nil, "got", err)
 		}
