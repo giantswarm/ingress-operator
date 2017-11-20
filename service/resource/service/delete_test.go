@@ -24,7 +24,8 @@ func Test_Service_newDeleteChange(t *testing.T) {
 		Expected     *apiv1.Service
 		ErrorMatcher func(error) bool
 	}{
-		// Test 0.
+		// Test 0 ensures that a having a single port in the current state and
+		// having the same port in the desired state, the delete state is empty.
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
@@ -79,7 +80,7 @@ func Test_Service_newDeleteChange(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test 1.
+		// Test 1 is the same as 0 but with multiple ports.
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
@@ -149,6 +150,96 @@ func Test_Service_newDeleteChange(t *testing.T) {
 					TargetPort: intstr.FromInt(31000),
 					NodePort:   int32(31000),
 				},
+				{
+					Name:       "https-30011-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31001),
+					TargetPort: intstr.FromInt(31001),
+					NodePort:   int32(31001),
+				},
+				{
+					Name:       "udp-30012-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31002),
+					TargetPort: intstr.FromInt(31002),
+					NodePort:   int32(31002),
+				},
+			},
+			Expected: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: nil,
+				},
+			},
+			ErrorMatcher: nil,
+		},
+
+		// Test 2 ensures that a single port in the desired state is not part of the
+		// delete state while the rest of the ports of the current state is part of
+		// the delete state.
+		{
+			Obj: &ingresstpr.CustomObject{
+				Spec: ingresstpr.Spec{
+					GuestCluster: guestcluster.GuestCluster{
+						ID:        "p1l6x",
+						Namespace: "p1l6x",
+						Service:   "worker",
+					},
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
+							ConfigMap: "ingress-controller",
+							Namespace: "kube-system",
+							Service:   "ingress-controller",
+						},
+					},
+					ProtocolPorts: []protocolport.ProtocolPort{
+						{
+							IngressPort: 30010,
+							Protocol:    "http",
+							LBPort:      31000,
+						},
+						{
+							IngressPort: 30011,
+							Protocol:    "https",
+							LBPort:      31001,
+						},
+					},
+				},
+			},
+			CurrentState: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "http-30010-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31000),
+							TargetPort: intstr.FromInt(31000),
+							NodePort:   int32(31000),
+						},
+						{
+							Name:       "https-30011-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31001),
+							TargetPort: intstr.FromInt(31001),
+							NodePort:   int32(31001),
+						},
+						{
+							Name:       "udp-30012-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+				},
+			},
+			DesiredState: []apiv1.ServicePort{
+				{
+					Name:       "http-30010-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31000),
+					TargetPort: intstr.FromInt(31000),
+					NodePort:   int32(31000),
+				},
 			},
 			Expected: &apiv1.Service{
 				Spec: apiv1.ServiceSpec{
@@ -162,6 +253,184 @@ func Test_Service_newDeleteChange(t *testing.T) {
 						},
 						{
 							Name:       "udp-30012-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+				},
+			},
+			ErrorMatcher: nil,
+		},
+
+		// Test 3 is the same as 2 but with different ports.
+		{
+			Obj: &ingresstpr.CustomObject{
+				Spec: ingresstpr.Spec{
+					GuestCluster: guestcluster.GuestCluster{
+						ID:        "p1l6x",
+						Namespace: "p1l6x",
+						Service:   "worker",
+					},
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
+							ConfigMap: "ingress-controller",
+							Namespace: "kube-system",
+							Service:   "ingress-controller",
+						},
+					},
+					ProtocolPorts: []protocolport.ProtocolPort{
+						{
+							IngressPort: 30010,
+							Protocol:    "http",
+							LBPort:      31000,
+						},
+						{
+							IngressPort: 30011,
+							Protocol:    "https",
+							LBPort:      31001,
+						},
+					},
+				},
+			},
+			CurrentState: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "http-30010-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31000),
+							TargetPort: intstr.FromInt(31000),
+							NodePort:   int32(31000),
+						},
+						{
+							Name:       "https-30011-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31001),
+							TargetPort: intstr.FromInt(31001),
+							NodePort:   int32(31001),
+						},
+						{
+							Name:       "udp-30012-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+				},
+			},
+			DesiredState: []apiv1.ServicePort{
+				{
+					Name:       "http-30010-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31000),
+					TargetPort: intstr.FromInt(31000),
+					NodePort:   int32(31000),
+				},
+				{
+					Name:       "https-30011-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31001),
+					TargetPort: intstr.FromInt(31001),
+					NodePort:   int32(31001),
+				},
+			},
+			Expected: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "udp-30012-p1l6x",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+				},
+			},
+			ErrorMatcher: nil,
+		},
+
+		// Test 4 is the same as 3 but with port names.
+		{
+			Obj: &ingresstpr.CustomObject{
+				Spec: ingresstpr.Spec{
+					GuestCluster: guestcluster.GuestCluster{
+						ID:        "p1l6x",
+						Namespace: "p1l6x",
+						Service:   "worker",
+					},
+					HostCluster: hostcluster.HostCluster{
+						IngressController: ingresscontroller.IngressController{
+							ConfigMap: "ingress-controller",
+							Namespace: "kube-system",
+							Service:   "ingress-controller",
+						},
+					},
+					ProtocolPorts: []protocolport.ProtocolPort{
+						{
+							IngressPort: 30010,
+							Protocol:    "http",
+							LBPort:      31000,
+						},
+						{
+							IngressPort: 30011,
+							Protocol:    "https",
+							LBPort:      31001,
+						},
+					},
+				},
+			},
+			CurrentState: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "http-30010-foo",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31000),
+							TargetPort: intstr.FromInt(31000),
+							NodePort:   int32(31000),
+						},
+						{
+							Name:       "https-30011-bar",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31001),
+							TargetPort: intstr.FromInt(31001),
+							NodePort:   int32(31001),
+						},
+						{
+							Name:       "udp-30012-baz",
+							Protocol:   apiv1.ProtocolTCP,
+							Port:       int32(31002),
+							TargetPort: intstr.FromInt(31002),
+							NodePort:   int32(31002),
+						},
+					},
+				},
+			},
+			DesiredState: []apiv1.ServicePort{
+				{
+					Name:       "http-30010-foo",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31000),
+					TargetPort: intstr.FromInt(31000),
+					NodePort:   int32(31000),
+				},
+				{
+					Name:       "https-30011-bar",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31001),
+					TargetPort: intstr.FromInt(31001),
+					NodePort:   int32(31001),
+				},
+			},
+			Expected: &apiv1.Service{
+				Spec: apiv1.ServiceSpec{
+					Ports: []apiv1.ServicePort{
+						{
+							Name:       "udp-30012-baz",
 							Protocol:   apiv1.ProtocolTCP,
 							Port:       int32(31002),
 							TargetPort: intstr.FromInt(31002),
