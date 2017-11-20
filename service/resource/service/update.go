@@ -79,6 +79,8 @@ func (r *Resource) newUpdateChange(ctx context.Context, obj, currentState, desir
 			}
 
 			if currentPort.Name != desiredPort.Name {
+				r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "warning", "found orphaned service port, overwriting it with desired service port")
+
 				for i, cp := range currentService.Spec.Ports {
 					if cp.Port == desiredPort.Port {
 						currentService.Spec.Ports[i] = desiredPort
