@@ -14,7 +14,7 @@ func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) (interf
 		return microerror.Mask(err), nil
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get desired state", "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get desired state")
 
 	// Lookup the desired state of the config map to have a reference of data how
 	// it should be.
@@ -31,7 +31,7 @@ func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) (interf
 		dState[configMapKey] = configMapValue
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", dState), "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", dState))
 
 	return dState, nil
 }

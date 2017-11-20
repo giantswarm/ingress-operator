@@ -14,7 +14,7 @@ func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interf
 		return microerror.Mask(err), nil
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get current state", "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get current state")
 
 	// Lookup the current state of the configmap.
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
@@ -29,7 +29,7 @@ func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interf
 		k8sConfigMap.Data = map[string]string{}
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found k8s state: %#v", *k8sConfigMap), "resource", "config-map")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found k8s state: %#v", *k8sConfigMap))
 
 	return k8sConfigMap, nil
 }
