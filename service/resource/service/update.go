@@ -62,20 +62,22 @@ func (r *Resource) newUpdateChange(ctx context.Context, obj, currentState, desir
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", []apiv1.ServicePort{}, desiredState)
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get update state")
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "finding out which service ports have to be updated")
 
 	var updateState *apiv1.Service
+	var count int
 	{
 		updateState = currentService
 
 		for _, p := range dState {
 			if !inServicePorts(updateState.Spec.Ports, p) {
 				updateState.Spec.Ports = append(updateState.Spec.Ports, p)
+				count++
 			}
 		}
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found update state: %#v", updateState))
+	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found %d service ports that have to be updated", count))
 
 	return updateState, nil
 }
