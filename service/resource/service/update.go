@@ -57,27 +57,44 @@ func (r *Resource) newUpdateChange(ctx context.Context, obj, currentState, desir
 	if err != nil {
 		return microerror.Mask(err), nil
 	}
-	dState, ok := desiredState.([]apiv1.ServicePort)
+	desiredPorts, ok := desiredState.([]apiv1.ServicePort)
 	if !ok {
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", []apiv1.ServicePort{}, desiredState)
 	}
 
 	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "finding out which service ports have to be updated")
 
-	var updateState *apiv1.Service
+	var serviceToUpdate *apiv1.Service
 	var count int
 	{
-		updateState = currentService
+		// TODO use DeepCopy to create a copy of the current service to prevent
+		// weird side effects as soon as the method it available.
 
-		for _, p := range dState {
-			if !inServicePorts(updateState.Spec.Ports, p) {
-				updateState.Spec.Ports = append(updateState.Spec.Ports, p)
+		for _, desiredPort := range desiredPorts {
+			currentPort, err := getServicePortByPort(currentService.Spec.Ports, desiredPort.Port)
+			if IsServicePortNotFound(err) {
+				currentService.Spec.Ports = append(currentService.Spec.Ports, desiredPort)
 				count++
+				continue
 			}
+
+			if currentPort.Name != desiredPort.Name {
+				for i, cp := range currentService.Spec.Ports {
+					if cp.Port == desiredPort.Port {
+						currentService.Spec.Ports[i] = desiredPort
+						count++
+						break
+					}
+				}
+			}
+		}
+
+		if count > 0 {
+			serviceToUpdate = currentService
 		}
 	}
 
 	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found %d service ports that have to be updated", count))
 
-	return updateState, nil
+	return serviceToUpdate, nil
 }
