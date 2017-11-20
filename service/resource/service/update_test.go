@@ -317,7 +317,7 @@ func Test_Service_newUpdateChange(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test 2 ensures ...
+		// Test 4 ensures overwriting orphaned service ports works as expected.
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
