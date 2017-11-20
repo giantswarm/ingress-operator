@@ -24,7 +24,7 @@ func Test_Service_newDeleteChange(t *testing.T) {
 		Expected     *apiv1.Service
 		ErrorMatcher func(error) bool
 	}{
-		// Test case 1.
+		// Test 0.
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
@@ -79,7 +79,7 @@ func Test_Service_newDeleteChange(t *testing.T) {
 			ErrorMatcher: nil,
 		},
 
-		// Test case 2.
+		// Test 1.
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
@@ -188,20 +188,20 @@ func Test_Service_newDeleteChange(t *testing.T) {
 		}
 	}
 
-	for i, testCase := range testCases {
-		result, err := newResource.newDeleteChange(context.TODO(), testCase.Obj, testCase.CurrentState, testCase.DesiredState)
-		if err != nil && testCase.ErrorMatcher == nil {
-			t.Fatal("case", i+1, "expected", nil, "got", err)
+	for i, tc := range testCases {
+		result, err := newResource.newDeleteChange(context.TODO(), tc.Obj, tc.CurrentState, tc.DesiredState)
+		if err != nil && tc.ErrorMatcher == nil {
+			t.Fatal("test", i, "expected", nil, "got", err)
 		}
-		if testCase.ErrorMatcher != nil && !testCase.ErrorMatcher(err) {
-			t.Fatal("case", i+1, "expected", true, "got", false)
+		if tc.ErrorMatcher != nil && !tc.ErrorMatcher(err) {
+			t.Fatal("test", i, "expected", true, "got", false)
 		}
 		e, ok := result.(*apiv1.Service)
 		if !ok {
-			t.Fatalf("case %d expected %#v got %#v", i+1, true, false)
+			t.Fatalf("test %d expected %#v got %#v", i, true, false)
 		}
-		if !reflect.DeepEqual(testCase.Expected, e) {
-			t.Fatalf("case %d expected %#v got %#v", i+1, testCase.Expected, e)
+		if !reflect.DeepEqual(tc.Expected, e) {
+			t.Fatalf("test %d expected %#v got %#v", i, tc.Expected, e)
 		}
 	}
 }

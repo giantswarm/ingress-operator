@@ -20,6 +20,7 @@ func Test_Service_GetDesiredState(t *testing.T) {
 		Expected     map[string]string
 		ErrorMatcher func(error) bool
 	}{
+		// Test 0.
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
@@ -49,6 +50,8 @@ func Test_Service_GetDesiredState(t *testing.T) {
 			},
 			ErrorMatcher: nil,
 		},
+
+		// Test 1.
 		{
 			Obj: &ingresstpr.CustomObject{
 				Spec: ingresstpr.Spec{
@@ -106,20 +109,20 @@ func Test_Service_GetDesiredState(t *testing.T) {
 		}
 	}
 
-	for i, testCase := range testCases {
-		result, err := newResource.GetDesiredState(context.TODO(), testCase.Obj)
-		if err != nil && testCase.ErrorMatcher == nil {
-			t.Fatal("case", i+1, "expected", nil, "got", err)
+	for i, tc := range testCases {
+		result, err := newResource.GetDesiredState(context.TODO(), tc.Obj)
+		if err != nil && tc.ErrorMatcher == nil {
+			t.Fatal("test", i, "expected", nil, "got", err)
 		}
-		if testCase.ErrorMatcher != nil && !testCase.ErrorMatcher(err) {
-			t.Fatal("case", i+1, "expected", true, "got", false)
+		if tc.ErrorMatcher != nil && !tc.ErrorMatcher(err) {
+			t.Fatal("test", i, "expected", true, "got", false)
 		}
 		e, ok := result.(map[string]string)
 		if !ok {
-			t.Fatalf("case %d expected %#v got %#v", i+1, true, false)
+			t.Fatalf("test %d expected %#v got %#v", i, true, false)
 		}
-		if !reflect.DeepEqual(testCase.Expected, e) {
-			t.Fatalf("case %d expected %#v got %#v", i+1, testCase.Expected, e)
+		if !reflect.DeepEqual(tc.Expected, e) {
+			t.Fatalf("test %d expected %#v got %#v", i, tc.Expected, e)
 		}
 	}
 }
