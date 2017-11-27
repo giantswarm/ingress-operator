@@ -1,5 +1,5 @@
 hash: bf71885e0abb56f4b1b9d2fe5f5285669ffc4d08704c1c87929885b66a576889
-updated: 2017-11-17T12:06:27.678053692+01:00
+updated: 2017-11-27T12:26:12.600319+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -49,7 +49,7 @@ imports:
   - service/healthz
   - service/version
 - name: github.com/giantswarm/microerror
-  version: 5ade94eb4ee35ef72eb9382228470caeddb29989
+  version: ec5f66bb657662031c0d651504fee6908cdf28d9
 - name: github.com/giantswarm/microkit
   version: e6c3aafd2c6b8298599dc465dc1294fbd025d2f1
   subpackages:
@@ -69,15 +69,16 @@ imports:
   - transaction/context/id
   - transaction/context/tracked
 - name: github.com/giantswarm/micrologger
-  version: 954d1261928bbb50dc917c629edf0b71db6a1527
+  version: bab5376fda89f10a5ebc5bd9feedab634400ab75
   subpackages:
+  - loggermeta
   - microloggertest
 - name: github.com/giantswarm/microstorage
   version: 99418478ec8f5c68f9b5fc5e6be7e0474948f80d
   subpackages:
   - memory
 - name: github.com/giantswarm/operatorkit
-  version: f4f5ada0b7447e1b71f6c622bbf873f6c74c1e1d
+  version: a805b836b6c6f5d03c923b86d443a86484114f8b
   subpackages:
   - client/k8sclient
   - framework
@@ -169,7 +170,7 @@ imports:
 - name: github.com/pelletier/go-toml
   version: 4e9e0ee19b60b13eb79915933f44d8ed5f268bdd
 - name: github.com/prometheus/client_golang
-  version: 5cec1d0429b02e4323e042eb04dafdb079ddf568
+  version: 1cdba8fdde81f444626530cce66e138d2f68ae1c
   subpackages:
   - prometheus
   - prometheus/promhttp
@@ -178,7 +179,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: e3fb1a1acd7605367a2b378bc2e2f893c05174b7
+  version: 2e54d0b93cba2fd133edc32211dcc32c06ef72ca
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
@@ -198,7 +199,7 @@ imports:
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/spf13/cobra
-  version: d6948b782c9f4799ea3cd225f6de4131c29c243a
+  version: 1be1d2841c773c01bee8289f55f7463b6e2c2539
 - name: github.com/spf13/jwalterweatherman
   version: 12bd96e66386c1960ab0f74ced1362f66f552f7b
 - name: github.com/spf13/pflag
