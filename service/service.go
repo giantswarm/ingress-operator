@@ -24,8 +24,8 @@ import (
 
 	"github.com/giantswarm/ingress-operator/flag"
 	"github.com/giantswarm/ingress-operator/service/healthz"
-	"github.com/giantswarm/ingress-operator/service/resource/configmap"
-	"github.com/giantswarm/ingress-operator/service/resource/service"
+	"github.com/giantswarm/ingress-operator/service/resource/configmapv1"
+	"github.com/giantswarm/ingress-operator/service/resource/servicev1"
 )
 
 const (
@@ -106,12 +106,12 @@ func New(config Config) (*Service, error) {
 
 	var configMapResource framework.Resource
 	{
-		operatorConfig := configmap.DefaultConfig()
+		operatorConfig := configmapv1.DefaultConfig()
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
 
-		configMapResource, err = configmap.New(operatorConfig)
+		configMapResource, err = configmapv1.New(operatorConfig)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
@@ -119,12 +119,12 @@ func New(config Config) (*Service, error) {
 
 	var serviceResource framework.Resource
 	{
-		operatorConfig := service.DefaultConfig()
+		operatorConfig := servicev1.DefaultConfig()
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
 
-		serviceResource, err = service.New(operatorConfig)
+		serviceResource, err = servicev1.New(operatorConfig)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
