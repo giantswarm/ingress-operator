@@ -150,7 +150,6 @@ func newCustomObjectFramework(config Config) (*framework.Framework, error) {
 	{
 		c := framework.DefaultConfig()
 
-		c.BackOffFactory = framework.DefaultBackOffFactory()
 		c.Informer = newInformer
 		c.InitCtxFunc = initCtxFunc
 		c.Logger = config.Logger
