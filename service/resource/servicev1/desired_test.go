@@ -1,4 +1,4 @@
-package configmap
+package servicev1
 
 import (
 	"context"
@@ -11,16 +11,15 @@ import (
 	"github.com/giantswarm/ingresstpr/hostcluster/ingresscontroller"
 	"github.com/giantswarm/ingresstpr/protocolport"
 	"github.com/giantswarm/micrologger/microloggertest"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/fake"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
-func Test_Service_newUpdateChange(t *testing.T) {
+func Test_Service_GetDesiredState(t *testing.T) {
 	testCases := []struct {
 		Obj          interface{}
-		CurrentState interface{}
-		DesiredState interface{}
-		Expected     *apiv1.ConfigMap
+		Expected     []apiv1.ServicePort
 		ErrorMatcher func(error) bool
 	}{
 		// Test 0.
@@ -48,19 +47,13 @@ func Test_Service_newUpdateChange(t *testing.T) {
 					},
 				},
 			},
-			CurrentState: &apiv1.ConfigMap{
-				Data: map[string]string{
-					"31000": "al9qy/worker:30010",
-				},
-			},
-			DesiredState: map[string]string{
-				"31000": "al9qy/worker:30010",
-				"31001": "al9qy/worker:30011",
-			},
-			Expected: &apiv1.ConfigMap{
-				Data: map[string]string{
-					"31000": "al9qy/worker:30010",
-					"31001": "al9qy/worker:30011",
+			Expected: []apiv1.ServicePort{
+				{
+					Name:       "http-30010-al9qy",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31000),
+					TargetPort: intstr.FromInt(31000),
+					NodePort:   int32(31000),
 				},
 			},
 			ErrorMatcher: nil,
@@ -101,22 +94,27 @@ func Test_Service_newUpdateChange(t *testing.T) {
 					},
 				},
 			},
-			CurrentState: &apiv1.ConfigMap{
-				Data: map[string]string{
-					"31000": "p1l6x/worker:30010",
-					"31001": "p1l6x/worker:30011",
+			Expected: []apiv1.ServicePort{
+				{
+					Name:       "http-30010-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31000),
+					TargetPort: intstr.FromInt(31000),
+					NodePort:   int32(31000),
 				},
-			},
-			DesiredState: map[string]string{
-				"31000": "p1l6x/worker:30010",
-				"31001": "p1l6x/worker:30011",
-				"31002": "p1l6x/worker:30012",
-			},
-			Expected: &apiv1.ConfigMap{
-				Data: map[string]string{
-					"31000": "p1l6x/worker:30010",
-					"31001": "p1l6x/worker:30011",
-					"31002": "p1l6x/worker:30012",
+				{
+					Name:       "https-30011-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31001),
+					TargetPort: intstr.FromInt(31001),
+					NodePort:   int32(31001),
+				},
+				{
+					Name:       "udp-30012-p1l6x",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       int32(31002),
+					TargetPort: intstr.FromInt(31002),
+					NodePort:   int32(31002),
 				},
 			},
 			ErrorMatcher: nil,
@@ -138,14 +136,14 @@ func Test_Service_newUpdateChange(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		result, err := newResource.newUpdateChange(context.TODO(), tc.Obj, tc.CurrentState, tc.DesiredState)
+		result, err := newResource.GetDesiredState(context.TODO(), tc.Obj)
 		if err != nil && tc.ErrorMatcher == nil {
 			t.Fatal("test", i, "expected", nil, "got", err)
 		}
 		if tc.ErrorMatcher != nil && !tc.ErrorMatcher(err) {
 			t.Fatal("test", i, "expected", true, "got", false)
 		}
-		e, ok := result.(*apiv1.ConfigMap)
+		e, ok := result.([]apiv1.ServicePort)
 		if !ok {
 			t.Fatalf("test %d expected %#v got %#v", i, true, false)
 		}
