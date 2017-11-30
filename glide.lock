@@ -1,8 +1,8 @@
 hash: e92d9956a2ccb6ef9640004f15caebd0d0f52af5b9402f39d76a5fbc1479eb92
-updated: 2017-11-30T15:05:19.675168+01:00
+updated: 2017-11-30T19:08:31.990007+01:00
 imports:
 - name: github.com/beorn7/perks
-  version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
+  version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
   - quantile
 - name: github.com/cenkalti/backoff
@@ -31,9 +31,14 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/apiextensions
-  version: 9e4dbd35f48903e4e94a66f0391c79dbec3332d0
+  version: b6ae8205a4c9fe136c020dbbddaf25f5e41a970c
   subpackages:
+  - pkg/apis/cluster/v1alpha1
   - pkg/apis/core/v1alpha1
+  - pkg/clientset/versioned
+  - pkg/clientset/versioned/scheme
+  - pkg/clientset/versioned/typed/cluster/v1alpha1
+  - pkg/clientset/versioned/typed/core/v1alpha1
 - name: github.com/giantswarm/ingresstpr
   version: a009b2b8443dca92f93bc36d093e597bb3f41950
   subpackages:
@@ -84,6 +89,7 @@ imports:
   subpackages:
   - client/k8sclient
   - client/k8scrdclient
+  - client/k8sextclient
   - framework
   - framework/context/canceledcontext
   - framework/resource/metricsresource
@@ -122,11 +128,16 @@ imports:
   - proto
   - sortkeys
 - name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/golang/protobuf
   version: 4bd1920723d7b7c925de087aa32e2187708897f7
   subpackages:
+  - jsonpb
   - proto
+  - ptypes
+  - ptypes/any
+  - ptypes/duration
+  - ptypes/timestamp
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/gorilla/context
@@ -178,7 +189,7 @@ imports:
   - prometheus
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: 99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c
+  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
   subpackages:
   - go
 - name: github.com/prometheus/common
@@ -219,11 +230,16 @@ imports:
   version: f2499483f923065a842d38eb4c7f1927e6fc6e6d
   subpackages:
   - context
+  - html
+  - html/atom
   - http2
   - http2/hpack
   - idna
+  - internal/timeseries
   - lex/httplex
   - publicsuffix
+  - trace
+  - websocket
 - name: golang.org/x/sync
   version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
   subpackages:
