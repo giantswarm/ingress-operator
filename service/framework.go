@@ -176,7 +176,7 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 	var newWatcherFactory informer.WatcherFactory
 	{
 		newWatcherFactory = func() (watch.Interface, error) {
-			watcher, err := clientSet.CoreV1alpha1().Ingresses("").Watch(apismetav1.ListOptions{})
+			watcher, err := clientSet.CoreV1alpha1().IngressConfigs("").Watch(apismetav1.ListOptions{})
 			if err != nil {
 				return nil, microerror.Mask(err)
 			}
@@ -201,7 +201,7 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 	{
 		c := framework.DefaultConfig()
 
-		c.CRD = v1alpha1.NewIngressCRD()
+		c.CRD = v1alpha1.NewIngressConfigCRD()
 		c.CRDClient = crdClient
 		c.Informer = newInformer
 		c.Logger = config.Logger

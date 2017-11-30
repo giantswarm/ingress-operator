@@ -20,21 +20,21 @@ func Test_Service_GetDesiredState(t *testing.T) {
 	}{
 		// Test 0.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "al9qy",
 						Namespace: "al9qy",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -57,21 +57,21 @@ func Test_Service_GetDesiredState(t *testing.T) {
 
 		// Test 1.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",

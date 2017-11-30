@@ -23,21 +23,21 @@ func Test_Service_newDeleteChange(t *testing.T) {
 		// Test 0 ensures that a having a single port in the current state and
 		// having the same port in the desired state, the delete state is empty.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "al9qy",
 						Namespace: "al9qy",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -78,21 +78,21 @@ func Test_Service_newDeleteChange(t *testing.T) {
 
 		// Test 1 is the same as 0 but with multiple ports.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -173,21 +173,21 @@ func Test_Service_newDeleteChange(t *testing.T) {
 		// delete state while the rest of the ports of the current state is part of
 		// the delete state.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -262,21 +262,21 @@ func Test_Service_newDeleteChange(t *testing.T) {
 
 		// Test 3 is the same as 2 but with different ports.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -351,21 +351,21 @@ func Test_Service_newDeleteChange(t *testing.T) {
 
 		// Test 4 is the same as 3 but with port names.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
