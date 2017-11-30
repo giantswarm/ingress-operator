@@ -197,7 +197,7 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 		}
 	}
 
-	var customObjectFramework *framework.Framework
+	var crdFramework *framework.Framework
 	{
 		c := framework.DefaultConfig()
 
@@ -207,13 +207,13 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 		c.Logger = config.Logger
 		c.ResourceRouter = framework.DefaultResourceRouter(resources)
 
-		customObjectFramework, err = framework.New(c)
+		crdFramework, err = framework.New(c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
 	}
 
-	return customObjectFramework, nil
+	return crdFramework, nil
 }
 
 func newCustomObjectFramework(config Config) (*framework.Framework, error) {
