@@ -1,5 +1,5 @@
-hash: bf71885e0abb56f4b1b9d2fe5f5285669ffc4d08704c1c87929885b66a576889
-updated: 2017-11-29T15:01:08.694295+01:00
+hash: e92d9956a2ccb6ef9640004f15caebd0d0f52af5b9402f39d76a5fbc1479eb92
+updated: 2017-11-30T11:39:17.504561+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
@@ -30,6 +30,10 @@ imports:
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+- name: github.com/giantswarm/apiextensions
+  version: a50685242279dfd7a9ea9c223ff09b6b82487eeb
+  subpackages:
+  - pkg/apis/core/v1alpha1
 - name: github.com/giantswarm/ingresstpr
   version: a009b2b8443dca92f93bc36d093e597bb3f41950
   subpackages:
@@ -76,7 +80,7 @@ imports:
   subpackages:
   - memory
 - name: github.com/giantswarm/operatorkit
-  version: a3a11e7cd38b119e98d4db12036cb210f363a130
+  version: 2804229e2bf865f72763ec1cf6f1d9dabb096665
   subpackages:
   - client/k8sclient
   - client/k8scrdclient
