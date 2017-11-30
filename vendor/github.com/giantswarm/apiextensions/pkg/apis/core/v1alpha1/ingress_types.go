@@ -11,14 +11,14 @@ import (
 //     apiVersion: apiextensions.k8s.io/v1beta1
 //     kind: CustomResourceDefinition
 //     metadata:
-//       name: ingresss.core.giantswarm.io
+//       name: ingresses.core.giantswarm.io
 //     spec:
 //       group: core.giantswarm.io
 //       scope: Namespaced
 //       version: v1alpha1
 //       names:
 //         kind: Ingress
-//         plural: ingresss
+//         plural: ingresses
 //         singular: ingress
 //
 func NewIngressCRD() *apiextensionsv1beta1.CustomResourceDefinition {
@@ -28,7 +28,7 @@ func NewIngressCRD() *apiextensionsv1beta1.CustomResourceDefinition {
 			Kind:       "CustomResourceDefinition",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "ingresss.core.giantswarm.io",
+			Name: "ingresses.core.giantswarm.io",
 		},
 		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
 			Group:   "core.giantswarm.io",
@@ -36,7 +36,7 @@ func NewIngressCRD() *apiextensionsv1beta1.CustomResourceDefinition {
 			Version: "v1alpha1",
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
 				Kind:     "Ingress",
-				Plural:   "ingresss",
+				Plural:   "ingresses",
 				Singular: "ingress",
 			},
 		},

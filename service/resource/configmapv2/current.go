@@ -9,6 +9,9 @@ import (
 )
 
 func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interface{}, error) {
+	r.logger.LogCtx(ctx, "info", "v2 resource executed")
+	return nil, nil
+
 	customObject, err := toCustomObject(obj)
 	if err != nil {
 		return microerror.Mask(err), nil
