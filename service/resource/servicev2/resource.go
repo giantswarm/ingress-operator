@@ -1,7 +1,7 @@
-package servicev1
+package servicev2
 
 import (
-	"github.com/giantswarm/ingresstpr"
+	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/framework"
@@ -11,7 +11,7 @@ import (
 
 const (
 	// Name is the identifier of the resource.
-	Name = "service"
+	Name = "servicev2"
 	// PortNameFormat is the format string used to create a service port name. It
 	// combines the protocol, the port of the ingress controller within the guest
 	// cluster and the guest cluster ID, in this order. E.g.:
@@ -93,10 +93,10 @@ func getServicePortByPort(list []apiv1.ServicePort, item int32) (apiv1.ServicePo
 	return apiv1.ServicePort{}, microerror.Maskf(servicePortNotFoundError, "no service port with port '%d'", item)
 }
 
-func toCustomObject(v interface{}) (ingresstpr.CustomObject, error) {
-	customObjectPointer, ok := v.(*ingresstpr.CustomObject)
+func toCustomObject(v interface{}) (v1alpha1.Ingress, error) {
+	customObjectPointer, ok := v.(*v1alpha1.Ingress)
 	if !ok {
-		return ingresstpr.CustomObject{}, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, v)
+		return v1alpha1.Ingress{}, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &v1alpha1.Ingress{}, v)
 	}
 	customObject := *customObjectPointer
 

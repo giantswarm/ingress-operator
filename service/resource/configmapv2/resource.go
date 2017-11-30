@@ -1,12 +1,13 @@
-package configmapv1
+package configmapv2
 
 import (
-	"github.com/giantswarm/ingresstpr"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/framework"
 	"k8s.io/client-go/kubernetes"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
+
+	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 )
 
 const (
@@ -20,7 +21,7 @@ const (
 	//
 	DataValueFormat = "%s/%s:%d"
 	// Name is the identifier of the resource.
-	Name = "configmap"
+	Name = "configmapv2"
 )
 
 // Config represents the configuration used to create a new config map resource.
@@ -84,10 +85,10 @@ func inConfigMapData(data map[string]string, k, v string) bool {
 	return false
 }
 
-func toCustomObject(v interface{}) (ingresstpr.CustomObject, error) {
-	customObjectPointer, ok := v.(*ingresstpr.CustomObject)
+func toCustomObject(v interface{}) (v1alpha1.Ingress, error) {
+	customObjectPointer, ok := v.(*v1alpha1.Ingress)
 	if !ok {
-		return ingresstpr.CustomObject{}, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &ingresstpr.CustomObject{}, v)
+		return v1alpha1.Ingress{}, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &v1alpha1.Ingress{}, v)
 	}
 	customObject := *customObjectPointer
 
