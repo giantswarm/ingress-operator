@@ -85,10 +85,10 @@ func inConfigMapData(data map[string]string, k, v string) bool {
 	return false
 }
 
-func toCustomObject(v interface{}) (v1alpha1.Ingress, error) {
-	customObjectPointer, ok := v.(*v1alpha1.Ingress)
+func toCustomObject(v interface{}) (v1alpha1.IngressConfig, error) {
+	customObjectPointer, ok := v.(*v1alpha1.IngressConfig)
 	if !ok {
-		return v1alpha1.Ingress{}, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &v1alpha1.Ingress{}, v)
+		return v1alpha1.IngressConfig{}, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", &v1alpha1.IngressConfig{}, v)
 	}
 	customObject := *customObjectPointer
 

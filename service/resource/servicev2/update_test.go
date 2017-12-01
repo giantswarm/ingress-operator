@@ -23,21 +23,21 @@ func Test_Service_newUpdateChange(t *testing.T) {
 		// Test 0 ensures that having one port in the current state and having the
 		// same port in the desired state, the update state should be empty.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "al9qy",
 						Namespace: "al9qy",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -74,21 +74,21 @@ func Test_Service_newUpdateChange(t *testing.T) {
 
 		// Test 1 is the same as 0 but with multiple ports.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -164,21 +164,21 @@ func Test_Service_newUpdateChange(t *testing.T) {
 		// Test 2 ensures that an empty current state causes the port of the desired
 		// state to be added to the update state.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "al9qy",
 						Namespace: "al9qy",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -221,21 +221,21 @@ func Test_Service_newUpdateChange(t *testing.T) {
 		// two new ports in the desired state, the update state contains a
 		// composition of these three ports.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
@@ -315,21 +315,21 @@ func Test_Service_newUpdateChange(t *testing.T) {
 
 		// Test 4 ensures overwriting orphaned service ports works as expected.
 		{
-			Obj: &v1alpha1.Ingress{
-				Spec: v1alpha1.IngressSpec{
-					GuestCluster: v1alpha1.IngressSpecGuestCluster{
+			Obj: &v1alpha1.IngressConfig{
+				Spec: v1alpha1.IngressConfigSpec{
+					GuestCluster: v1alpha1.IngressConfigSpecGuestCluster{
 						ID:        "p1l6x",
 						Namespace: "p1l6x",
 						Service:   "worker",
 					},
-					HostCluster: v1alpha1.IngressSpecHostCluster{
-						IngressController: v1alpha1.IngressSpecHostClusterIngressController{
+					HostCluster: v1alpha1.IngressConfigSpecHostCluster{
+						IngressController: v1alpha1.IngressConfigSpecHostClusterIngressController{
 							ConfigMap: "ingress-controller",
 							Namespace: "kube-system",
 							Service:   "ingress-controller",
 						},
 					},
-					ProtocolPorts: []v1alpha1.IngressSpecProtocolPort{
+					ProtocolPorts: []v1alpha1.IngressConfigSpecProtocolPort{
 						{
 							IngressPort: 30010,
 							Protocol:    "http",
