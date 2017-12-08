@@ -416,9 +416,9 @@ func migrateTPRsToCRDs(logger micrologger.Logger, clientSet *versioned.Clientset
 			cro.TypeMeta.APIVersion = "core.giantswarm.io"
 			cro.TypeMeta.Kind = "IngressConfig"
 			cro.ObjectMeta.Name = tpo.Name
-			cro.ObjectMeta.Finalizers = []string{
-				IngressConfigCleanupFinalizer,
-			}
+			//cro.ObjectMeta.Finalizers = []string{
+			//	IngressConfigCleanupFinalizer,
+			//}
 			cro.Spec.GuestCluster.ID = tpo.Spec.GuestCluster.ID
 			cro.Spec.GuestCluster.Namespace = tpo.Spec.GuestCluster.Namespace
 			cro.Spec.GuestCluster.Service = tpo.Spec.GuestCluster.Service
