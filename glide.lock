@@ -1,5 +1,5 @@
 hash: 95df77649fa70a0e2dceb50a392f9c02074b81680dcaade8a0bc33d5a6ceb39a
-updated: 2017-12-08T10:57:01.758584+01:00
+updated: 2017-12-08T20:44:53.085024+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
@@ -31,7 +31,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/apiextensions
-  version: 7ec3d5ca6238c9d2473d71494a2b36d295513a4e
+  version: 4d6738e12b97ccac6befe4d41525912cb59c8335
   subpackages:
   - pkg/apis/core/v1alpha1
   - pkg/apis/provider/v1alpha1
@@ -40,7 +40,7 @@ imports:
   - pkg/clientset/versioned/typed/core/v1alpha1
   - pkg/clientset/versioned/typed/provider/v1alpha1
 - name: github.com/giantswarm/ingresstpr
-  version: a009b2b8443dca92f93bc36d093e597bb3f41950
+  version: a0b99ebec8679ed0ce240df0b7124e28b8fe2ce1
   subpackages:
   - guestcluster
   - hostcluster
@@ -260,7 +260,7 @@ imports:
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
-  version: 287cf08546ab5e7e37d55a84f7ed3fd1db036de5
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/apiextensions-apiserver
   version: fcd622fe88a4a6efcb5aea9e94ee87324ac1b036
   subpackages:
