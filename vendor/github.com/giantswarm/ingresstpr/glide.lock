@@ -1,12 +1,12 @@
-hash: 5891afa6d22e8522373bf99b2023712e39fcf70e4ca2f0411394f7f30a5cb53d
-updated: 2017-10-04T11:17:25.203013557+02:00
+hash: 1fffea6606d87afc7b6f66fb64baceff23fd8721401b1cd9d6d78dd0aa06aa28
+updated: 2017-12-08T15:50:10.870829+01:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
   subpackages:
   - log
 - name: github.com/giantswarm/operatorkit
-  version: da881f7bb58462fa8b96f06edf0e751efd17f5fb
+  version: 8b3446a2ecbe707fb6ba351b035cd60508af5aec
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -59,7 +59,7 @@ imports:
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: k8s.io/apimachinery
-  version: 8ab5f3d8a330c2e9baaf84e39042db8d49034ae2
+  version: 1fd2e63a9a370677308a42f24fd40c86438afddf
   subpackages:
   - pkg/api/resource
   - pkg/apis/meta/v1
