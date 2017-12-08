@@ -2,13 +2,17 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
 	"github.com/giantswarm/ingresstpr"
+	"github.com/giantswarm/ingresstpr/protocolport"
 	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/micrologger/microloggertest"
 	"github.com/giantswarm/operatorkit/client/k8sclient"
 	"github.com/giantswarm/operatorkit/client/k8scrdclient"
@@ -33,6 +37,10 @@ import (
 
 const (
 	ResourceRetries uint64 = 3
+)
+
+const (
+	IngressConfigCleanupFinalizer = "ingress-operator.giantswarm.io/custom-object-cleanup"
 )
 
 func newCRDFramework(config Config) (*framework.Framework, error) {
@@ -172,6 +180,9 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 			return nil, microerror.Mask(err)
 		}
 	}
+
+	// TODO remove after migration.
+	migrateTPRsToCRDs(config.Logger, clientSet)
 
 	var newWatcherFactory informer.WatcherFactory
 	{
@@ -355,4 +366,106 @@ func newCustomObjectFramework(config Config) (*framework.Framework, error) {
 	}
 
 	return customObjectFramework, nil
+}
+
+func migrateTPRsToCRDs(logger micrologger.Logger, clientSet *versioned.Clientset) {
+	logger.Log("debug", "start TPR migration")
+
+	var err error
+
+	// List all TPOs.
+	var b []byte
+	{
+		e := "/apis/giantswarm.io/v1/namespaces/default/ingressconfigs"
+		b, err = clientSet.Discovery().RESTClient().Get().AbsPath(e).DoRaw()
+		if err != nil {
+			logger.Log("error", fmt.Sprintf("%#v", err))
+			return
+		}
+
+		fmt.Printf("\n")
+		fmt.Printf("b start\n")
+		fmt.Printf("%s\n", b)
+		fmt.Printf("b end\n")
+		fmt.Printf("\n")
+	}
+
+	// Convert bytes into structure.
+	var v *ingresstpr.List
+	{
+		v = &ingresstpr.List{}
+		if err := json.Unmarshal(b, v); err != nil {
+			logger.Log("error", fmt.Sprintf("%#v", err))
+			return
+		}
+
+		fmt.Printf("\n")
+		fmt.Printf("v start\n")
+		fmt.Printf("%#v\n", v)
+		fmt.Printf("v end\n")
+		fmt.Printf("\n")
+	}
+
+	// Iterate over all TPOs.
+	for _, tpo := range v.Items {
+		// Compute CRO using TPO.
+		var cro *v1alpha1.IngressConfig
+		{
+			cro = &v1alpha1.IngressConfig{}
+
+			cro.TypeMeta.APIVersion = "core.giantswarm.io"
+			cro.TypeMeta.Kind = "IngressConfig"
+			cro.ObjectMeta.Name = tpo.Name
+			cro.ObjectMeta.Finalizers = []string{
+				IngressConfigCleanupFinalizer,
+			}
+			cro.Spec.GuestCluster.ID = tpo.Spec.GuestCluster.ID
+			cro.Spec.GuestCluster.Namespace = tpo.Spec.GuestCluster.Namespace
+			cro.Spec.GuestCluster.Service = tpo.Spec.GuestCluster.Service
+			cro.Spec.HostCluster.IngressController.ConfigMap = tpo.Spec.HostCluster.IngressController.ConfigMap
+			cro.Spec.HostCluster.IngressController.Namespace = tpo.Spec.HostCluster.IngressController.Namespace
+			cro.Spec.HostCluster.IngressController.Service = tpo.Spec.HostCluster.IngressController.Service
+			cro.Spec.ProtocolPorts = toProtocolPorts(tpo.Spec.ProtocolPorts)
+
+			fmt.Printf("\n")
+			fmt.Printf("cro start\n")
+			fmt.Printf("%#v\n", cro)
+			fmt.Printf("cro end\n")
+			fmt.Printf("\n")
+		}
+
+		// Create CRO in Kubernetes API.
+		{
+			// TODO enable.
+			// _, err := clientSet.ProviderV1alpha1().IngressConfigs(tpo.Namespace).Get(cro.Name, apismetav1.GetOptions{})
+			// if apierrors.IsNotFound(err) {
+			// 	_, err := clientSet.ProviderV1alpha1().IngressConfigs(tpo.Namespace).Create(cro)
+			// 	if err != nil {
+			// 		logger.Log("error", fmt.Sprintf("%#v", err))
+			// 		return
+			// 	}
+			// } else if err != nil {
+			// 	logger.Log("error", fmt.Sprintf("%#v", err))
+			// 	return
+			// }
+		}
+	}
+
+	logger.Log("debug", "end TPR migration")
+}
+
+func toProtocolPorts(protocolPortList []protocolport.ProtocolPort) []v1alpha1.IngressConfigSpecProtocolPort {
+	var newList []v1alpha1.IngressConfigSpecProtocolPort
+
+	for _, port := range protocolPortList {
+		p := v1alpha1.IngressConfigSpecProtocolPort{
+			IngressPort: port.IngressPort,
+			LBPort:      port.LBPort,
+			Protocol:    port.Protocol,
+		}
+
+		newList = append(newList, p)
+	}
+
+	return newList
 }
