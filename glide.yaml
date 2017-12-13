@@ -1,7 +1,7 @@
 package: github.com/giantswarm/ingress-operator
 import:
 - package: github.com/giantswarm/apiextensions
-  version: clientset
+  version: master
 - package: github.com/giantswarm/microkit
   version: master
 - package: github.com/giantswarm/k8shealthz
@@ -13,6 +13,4 @@ import:
 - package: github.com/giantswarm/micrologger
   version: master
 - package: github.com/giantswarm/operatorkit
-  version: kubernetes-1.7
-- package: github.com/giantswarm/ingresstpr
   version: master
