@@ -7,9 +7,9 @@ import (
 
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 	"github.com/giantswarm/micrologger/microloggertest"
+	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/fake"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func Test_Service_GetDesiredState(t *testing.T) {
