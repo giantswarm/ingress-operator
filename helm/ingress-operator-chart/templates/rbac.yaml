@@ -1,0 +1,31 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ingress-operator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ingress-operator
+subjects:
+  - kind: ServiceAccount
+    name: ingress-operator
+roleRef:
+  kind: ClusterRole
+  name: ingress-operator
+  apiGroup: rbac.authorization.k8s.io
