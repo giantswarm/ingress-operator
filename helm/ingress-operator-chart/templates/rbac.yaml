@@ -4,12 +4,25 @@ metadata:
   name: ingress-operator
 rules:
   - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - "*"
+  - apiGroups:
+      - core.giantswarm.io
+    resources:
+      - ingressconfigs
+    verbs:
+      - watch
+  - apiGroups:
       - ""
     resources:
       - services
     verbs:
       - get
       - create
+      - update
   - apiGroups:
       - ""
     resources:
@@ -29,10 +42,9 @@ rules:
       - ""
     resources:
       - configmaps
-    resourceNames:
-      - ingress-operator-configmap
     verbs:
       - get
+      - update
   - nonResourceURLs:
       - "/"
       - "/healthz"
