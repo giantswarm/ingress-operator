@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: kvm-operator-psp
+  name: ingress-operator-psp
 spec:
   privileged: false
   fsGroup:
