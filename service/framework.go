@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/cenkalti/backoff"
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
@@ -117,7 +119,7 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 			serviceResource,
 		}
 
-		retryWrapConfig := retryresource.DefaultWrapConfig()
+		retryWrapConfig := retryresource.WrapConfig{}
 		retryWrapConfig.BackOffFactory = func() backoff.BackOff { return backoff.WithMaxTries(backoff.NewExponentialBackOff(), ResourceRetries) }
 		retryWrapConfig.Logger = config.Logger
 		resources, err = retryresource.Wrap(resources, retryWrapConfig)
@@ -125,7 +127,7 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 			return nil, microerror.Mask(err)
 		}
 
-		metricsWrapConfig := metricsresource.DefaultWrapConfig()
+		metricsWrapConfig := metricsresource.WrapConfig{}
 		metricsWrapConfig.Name = config.Name
 		resources, err = metricsresource.Wrap(resources, metricsWrapConfig)
 		if err != nil {
@@ -175,15 +177,53 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 		}
 	}
 
+	handlesFunc := func(obj interface{}) bool {
+		return true
+	}
+
+	initCtxFunc := func(ctx context.Context, obj interface{}) (context.Context, error) {
+		return ctx, nil
+	}
+
+	var v2ResourceSet *framework.ResourceSet
+	{
+		c := framework.ResourceSetConfig{
+
+			Handles:   handlesFunc,
+			InitCtx:   initCtxFunc,
+			Logger:    config.Logger,
+			Resources: resources,
+		}
+
+		v2ResourceSet, err = framework.NewResourceSet(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
+	var resourceRouter *framework.ResourceRouter
+	{
+		c := framework.ResourceRouterConfig{}
+
+		c.ResourceSets = []*framework.ResourceSet{
+			v2ResourceSet,
+		}
+
+		resourceRouter, err = framework.NewResourceRouter(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+
 	var crdFramework *framework.Framework
 	{
-		c := framework.DefaultConfig()
-
-		c.CRD = v1alpha1.NewIngressConfigCRD()
-		c.CRDClient = crdClient
-		c.Informer = newInformer
-		c.Logger = config.Logger
-		c.ResourceRouter = framework.DefaultResourceRouter(resources)
+		c := framework.Config{
+			CRD:            v1alpha1.NewIngressConfigCRD(),
+			CRDClient:      crdClient,
+			Informer:       newInformer,
+			Logger:         config.Logger,
+			ResourceRouter: resourceRouter,
+		}
 
 		crdFramework, err = framework.New(c)
 		if err != nil {
