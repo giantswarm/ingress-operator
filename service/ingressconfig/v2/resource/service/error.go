@@ -1,4 +1,4 @@
-package servicev2
+package service
 
 import (
 	"github.com/giantswarm/microerror"

@@ -1,4 +1,4 @@
-package servicev2
+package service
 
 import (
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
