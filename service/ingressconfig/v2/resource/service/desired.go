@@ -1,11 +1,12 @@
-package configmapv2
+package service
 
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/giantswarm/microerror"
+	apiv1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) (interface{}, error) {
@@ -16,19 +17,26 @@ func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) (interf
 
 	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get desired state")
 
-	// Lookup the desired state of the config map to have a reference of data how
-	// it should be.
-	dState := map[string]string{}
+	// Lookup the desired state of the service to have a reference of ports how
+	// they should be.
+	dState := []apiv1.ServicePort{}
 	for _, p := range customObject.Spec.ProtocolPorts {
-		configMapKey := strconv.Itoa(p.LBPort)
-		configMapValue := fmt.Sprintf(
-			DataValueFormat,
-			customObject.Spec.GuestCluster.Namespace,
-			customObject.Spec.GuestCluster.Service,
+		servicePortName := fmt.Sprintf(
+			PortNameFormat,
+			p.Protocol,
 			p.IngressPort,
+			customObject.Spec.GuestCluster.ID,
 		)
 
-		dState[configMapKey] = configMapValue
+		newPort := apiv1.ServicePort{
+			Name:       servicePortName,
+			Protocol:   apiv1.ProtocolTCP,
+			Port:       int32(p.LBPort),
+			TargetPort: intstr.FromInt(p.LBPort),
+			NodePort:   int32(p.LBPort),
+		}
+
+		dState = append(dState, newPort)
 	}
 
 	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", dState))

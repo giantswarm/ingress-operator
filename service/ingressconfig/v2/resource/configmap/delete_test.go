@@ -1,4 +1,4 @@
-package configmapv2
+package configmap
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func Test_Service_newUpdateChange(t *testing.T) {
+func Test_Service_newDeleteChange(t *testing.T) {
 	testCases := []struct {
 		Obj          interface{}
 		CurrentState interface{}
@@ -47,15 +47,14 @@ func Test_Service_newUpdateChange(t *testing.T) {
 			CurrentState: &apiv1.ConfigMap{
 				Data: map[string]string{
 					"31000": "al9qy/worker:30010",
+					"31001": "al9qy/worker:30011",
 				},
 			},
 			DesiredState: map[string]string{
 				"31000": "al9qy/worker:30010",
-				"31001": "al9qy/worker:30011",
 			},
 			Expected: &apiv1.ConfigMap{
 				Data: map[string]string{
-					"31000": "al9qy/worker:30010",
 					"31001": "al9qy/worker:30011",
 				},
 			},
@@ -101,17 +100,15 @@ func Test_Service_newUpdateChange(t *testing.T) {
 				Data: map[string]string{
 					"31000": "p1l6x/worker:30010",
 					"31001": "p1l6x/worker:30011",
+					"31002": "p1l6x/worker:30012",
 				},
 			},
 			DesiredState: map[string]string{
 				"31000": "p1l6x/worker:30010",
 				"31001": "p1l6x/worker:30011",
-				"31002": "p1l6x/worker:30012",
 			},
 			Expected: &apiv1.ConfigMap{
 				Data: map[string]string{
-					"31000": "p1l6x/worker:30010",
-					"31001": "p1l6x/worker:30011",
 					"31002": "p1l6x/worker:30012",
 				},
 			},
@@ -134,7 +131,7 @@ func Test_Service_newUpdateChange(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		result, err := newResource.newUpdateChange(context.TODO(), tc.Obj, tc.CurrentState, tc.DesiredState)
+		result, err := newResource.newDeleteChange(context.TODO(), tc.Obj, tc.CurrentState, tc.DesiredState)
 		if err != nil && tc.ErrorMatcher == nil {
 			t.Fatal("test", i, "expected", nil, "got", err)
 		}

@@ -1,4 +1,4 @@
-package configmapv2
+package service
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/operatorkit/framework"
+	apiv1 "k8s.io/api/core/v1"
 )
 
 func (r *Resource) ApplyDeleteChange(ctx context.Context, obj, deleteChange interface{}) error {
@@ -13,23 +14,23 @@ func (r *Resource) ApplyDeleteChange(ctx context.Context, obj, deleteChange inte
 	if err != nil {
 		return microerror.Mask(err)
 	}
-	configMapToDelete, err := toConfigMap(deleteChange)
+	serviceToDelete, err := toService(deleteChange)
 	if err != nil {
 		return microerror.Mask(err)
 	}
 
-	if configMapToDelete != nil {
-		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the config map data in the Kubernetes API")
+	if serviceToDelete != nil {
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the service data in the Kubernetes API")
 
 		namespace := customObject.Spec.HostCluster.IngressController.Namespace
-		_, err := r.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToDelete)
+		_, err := r.k8sClient.CoreV1().Services(namespace).Update(serviceToDelete)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the config map data in the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the service data in the Kubernetes API")
 	} else {
-		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be deleted in the Kubernetes API")
+		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the service data does not need to be deleted in the Kubernetes API")
 	}
 
 	return nil
@@ -52,13 +53,13 @@ func (r *Resource) newDeleteChange(ctx context.Context, obj, currentState, desir
 	if err != nil {
 		return microerror.Mask(err), nil
 	}
-	currentConfigMap, err := toConfigMap(currentState)
+	currentService, err := toService(currentState)
 	if err != nil {
 		return microerror.Mask(err), nil
 	}
-	dState, ok := desiredState.(map[string]string)
+	dState, ok := desiredState.([]apiv1.ServicePort)
 	if !ok {
-		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", map[string]string{}, desiredState)
+		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", []apiv1.ServicePort{}, desiredState)
 	}
 
 	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get delete state")
@@ -67,24 +68,24 @@ func (r *Resource) newDeleteChange(ctx context.Context, obj, currentState, desir
 	// delete action. The resources we already fetched represent the source of
 	// truth. They have to be used as base to actually update the resources in the
 	// next steps.
-	deleteState := currentConfigMap
+	deleteState := currentService
 
 	// Find anything which is in current state but not in the desired state. This
 	// lets us drive the current state towards the desired state, because
 	// everything we find here is supposed to be deleted. Note that the deletion
-	// of config map data and service ports is always only an update operation
+	// of config-map data and service ports is always only an update operation
 	// against the Kubernetes API. Anyway, this concept here implements how a real
 	// reconciliation should drive specific parts of the current state towards the
 	// desired state, because a decent reconciliation is not always only an update
 	// operation of existing resources, but e.g. deletion of resources. In our
 	// case here we only transform data within resources. Therefore the update.
-	newData := map[string]string{}
-	for k, v := range deleteState.Data {
-		if !inConfigMapData(dState, k, v) {
-			newData[k] = v
+	var newPorts []apiv1.ServicePort
+	for _, p := range deleteState.Spec.Ports {
+		if !inServicePorts(dState, p) {
+			newPorts = append(newPorts, p)
 		}
 	}
-	deleteState.Data = newData
+	deleteState.Spec.Ports = newPorts
 
 	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found delete state: %#v", deleteState))
 
