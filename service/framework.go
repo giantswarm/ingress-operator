@@ -88,12 +88,12 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 
 	var configMapResource framework.Resource
 	{
-		operatorConfig := configmapv2.DefaultConfig()
+		operatorConfig := configmap.DefaultConfig()
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
 
-		configMapResource, err = configmapv2.New(operatorConfig)
+		configMapResource, err = configmap.New(operatorConfig)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
