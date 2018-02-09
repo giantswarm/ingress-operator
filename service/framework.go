@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cenkalti/backoff"
+	"github.com/giantswarm/api/service"
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
 	"github.com/giantswarm/microerror"
@@ -20,7 +21,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/configmap"
-	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/servicev2"
 )
 
 const (
@@ -101,12 +101,12 @@ func newCRDFramework(config Config) (*framework.Framework, error) {
 
 	var serviceResource framework.Resource
 	{
-		operatorConfig := servicev2.DefaultConfig()
+		operatorConfig := service.DefaultConfig()
 
 		operatorConfig.K8sClient = k8sClient
 		operatorConfig.Logger = config.Logger
 
-		serviceResource, err = servicev2.New(operatorConfig)
+		serviceResource, err = service.New(operatorConfig)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
