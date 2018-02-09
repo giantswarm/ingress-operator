@@ -1,4 +1,4 @@
-package configmapv2
+package configmap
 
 import (
 	"context"
