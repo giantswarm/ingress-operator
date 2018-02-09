@@ -19,8 +19,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/giantswarm/ingress-operator/service/resource/configmapv2"
-	"github.com/giantswarm/ingress-operator/service/resource/servicev2"
+	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/configmapv2"
+	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/servicev2"
 )
 
 const (
