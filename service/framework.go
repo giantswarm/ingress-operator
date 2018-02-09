@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cenkalti/backoff"
-	"github.com/giantswarm/api/service"
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
 	"github.com/giantswarm/microerror"
@@ -21,6 +20,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/configmap"
+	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/service"
 )
 
 const (
