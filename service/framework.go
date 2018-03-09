@@ -5,7 +5,6 @@ import (
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"github.com/giantswarm/micrologger/microloggertest"
 	"github.com/giantswarm/operatorkit/client/k8scrdclient"
 	"github.com/giantswarm/operatorkit/framework"
 	"github.com/giantswarm/operatorkit/informer"
@@ -32,28 +31,15 @@ func NewFramework(config FrameworkConfig) (*framework.Framework, error) {
 	if config.G8sClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.G8sClient must not be empty", config)
 	}
-	if config.K8sClient == nil {
-		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
-	}
-	if config.K8sExtClient == nil {
-		return nil, microerror.Maskf(invalidConfigError, "%T.K8sExtClient must not be empty", config)
-	}
-	if config.Logger == nil {
-		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
-	}
-
-	if config.ProjectName == "" {
-		return nil, microerror.Maskf(invalidConfigError, "%T.ProjectName must not be empty", config)
-	}
 
 	var err error
 
 	var crdClient *k8scrdclient.CRDClient
 	{
-		c := k8scrdclient.DefaultConfig()
-
-		c.K8sExtClient = config.K8sExtClient
-		c.Logger = microloggertest.New()
+		c := k8scrdclient.Config{
+			K8sExtClient: config.K8sExtClient,
+			Logger:       config.Logger,
+		}
 
 		crdClient, err = k8scrdclient.New(c)
 		if err != nil {
@@ -63,11 +49,14 @@ func NewFramework(config FrameworkConfig) (*framework.Framework, error) {
 
 	var newInformer *informer.Informer
 	{
-		informerConfig := informer.DefaultConfig()
+		c := informer.Config{
+			Watcher: config.G8sClient.CoreV1alpha1().IngressConfigs(""),
 
-		informerConfig.Watcher = config.G8sClient.CoreV1alpha1().IngressConfigs("")
+			RateWait:     informer.DefaultRateWait,
+			ResyncPeriod: informer.DefaultResyncPeriod,
+		}
 
-		newInformer, err = informer.New(informerConfig)
+		newInformer, err = informer.New(c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}

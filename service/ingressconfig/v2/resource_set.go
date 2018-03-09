@@ -47,7 +47,12 @@ func NewResourceSet(config ResourceSetConfig) (*framework.ResourceSet, error) {
 			Logger:    config.Logger,
 		}
 
-		configMapResource, err = configmap.New(c)
+		ops, err := configmap.New(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+
+		configMapResource, err = toCRUDResource(config.Logger, ops)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
@@ -60,7 +65,12 @@ func NewResourceSet(config ResourceSetConfig) (*framework.ResourceSet, error) {
 			Logger:    config.Logger,
 		}
 
-		serviceResource, err = service.New(c)
+		ops, err := service.New(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+
+		serviceResource, err = toCRUDResource(config.Logger, ops)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
@@ -113,4 +123,18 @@ func NewResourceSet(config ResourceSetConfig) (*framework.ResourceSet, error) {
 	}
 
 	return resourceSet, nil
+}
+
+func toCRUDResource(logger micrologger.Logger, ops framework.CRUDResourceOps) (*framework.CRUDResource, error) {
+	c := framework.CRUDResourceConfig{
+		Logger: logger,
+		Ops:    ops,
+	}
+
+	r, err := framework.NewCRUDResource(c)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	return r, nil
 }
