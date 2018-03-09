@@ -76,24 +76,29 @@ func NewResourceSet(config ResourceSetConfig) (*framework.ResourceSet, error) {
 		}
 	}
 
-	var resources []framework.Resource
+	resources := []framework.Resource{
+		configMapResource,
+		serviceResource,
+	}
+
 	{
-		resources = []framework.Resource{
-			configMapResource,
-			serviceResource,
+		c := retryresource.WrapConfig{
+			BackOffFactory: func() backoff.BackOff { return backoff.WithMaxTries(backoff.NewExponentialBackOff(), ResourceRetries) },
+			Logger:         config.Logger,
 		}
 
-		retryWrapConfig := retryresource.WrapConfig{}
-		retryWrapConfig.BackOffFactory = func() backoff.BackOff { return backoff.WithMaxTries(backoff.NewExponentialBackOff(), ResourceRetries) }
-		retryWrapConfig.Logger = config.Logger
-		resources, err = retryresource.Wrap(resources, retryWrapConfig)
+		resources, err = retryresource.Wrap(resources, c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
+	}
 
-		metricsWrapConfig := metricsresource.WrapConfig{}
-		metricsWrapConfig.Name = config.ProjectName
-		resources, err = metricsresource.Wrap(resources, metricsWrapConfig)
+	{
+		c := metricsresource.WrapConfig{
+			Name: config.ProjectName,
+		}
+
+		resources, err = metricsresource.Wrap(resources, c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
