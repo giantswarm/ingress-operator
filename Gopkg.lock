@@ -65,7 +65,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
+  branch = "version-bundle"
   name = "github.com/giantswarm/apiextensions"
   packages = [
     "pkg/apis/core/v1alpha1",
@@ -75,7 +75,7 @@
     "pkg/clientset/versioned/typed/core/v1alpha1",
     "pkg/clientset/versioned/typed/provider/v1alpha1"
   ]
-  revision = "819eb0a6b723acd59776a2dee0d6b75b4fa5fde3"
+  revision = "03d66296533e2a1c24e7f9074b89daeb385bb47a"
 
 [[projects]]
   branch = "master"
@@ -120,7 +120,7 @@
     "transaction/context/id",
     "transaction/context/tracked"
   ]
-  revision = "992da614a8f20540ebc9049c62c36bbbf12710de"
+  revision = "b700edbe027ced8bab334c54e3c07aba17098472"
 
 [[projects]]
   branch = "master"
@@ -157,7 +157,7 @@
     "framework/resource/retryresource",
     "informer"
   ]
-  revision = "b2f83ecc11dc208b8c5aba59a99d48fbf72981d3"
+  revision = "75ba7e3afe272731ffb693bad7920c9bf2baa8d7"
 
 [[projects]]
   branch = "master"
@@ -712,6 +712,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "faad2bb4f7d9d1d5241f5673cd7919436099b505d7fda9f6f7a2b3b0a8468322"
+  inputs-digest = "423a7c70cc3444e404f347215cb7d167ea21899ee9749eeb6d0259984a20ce0e"
   solver-name = "gps-cdcl"
   solver-version = 1
