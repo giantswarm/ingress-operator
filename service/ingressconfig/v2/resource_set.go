@@ -11,6 +11,7 @@ import (
 	"github.com/giantswarm/operatorkit/framework/resource/retryresource"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/key"
 	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/configmap"
 	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/service"
 )
@@ -105,7 +106,21 @@ func NewResourceSet(config ResourceSetConfig) (*framework.ResourceSet, error) {
 	}
 
 	handlesFunc := func(obj interface{}) bool {
-		return true
+		customObject, err := key.ToCustomObject(obj)
+		if err != nil {
+			return false
+		}
+
+		if key.VersionBundleVersion(customObject) == VersionBundle().Version {
+			return true
+		}
+		// TODO remove this hack with the next version bundle version or as soon as
+		// all ingressconfigs obtain a real version bundle version.
+		if key.VersionBundleVersion(customObject) == "" {
+			return true
+		}
+
+		return false
 	}
 
 	initCtxFunc := func(ctx context.Context, obj interface{}) (context.Context, error) {
