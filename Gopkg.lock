@@ -65,7 +65,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "version-bundle"
+  branch = "master"
   name = "github.com/giantswarm/apiextensions"
   packages = [
     "pkg/apis/core/v1alpha1",
@@ -75,7 +75,7 @@
     "pkg/clientset/versioned/typed/core/v1alpha1",
     "pkg/clientset/versioned/typed/provider/v1alpha1"
   ]
-  revision = "03d66296533e2a1c24e7f9074b89daeb385bb47a"
+  revision = "54312c76ad7bec3d96d1eb57eba5f860410ae075"
 
 [[projects]]
   branch = "master"
@@ -356,7 +356,7 @@
     "jlexer",
     "jwriter"
   ]
-  revision = "4a8a4c12c4d1b0c0a7de630426ce6dcb07141b17"
+  revision = "f594efddfa171111dc4349cd6e78e8f61dc7936f"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -434,7 +434,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "1c7ff3de94ae006f58cba483a4c9c6d7c61e1d98"
+  revision = "54d17b57dd7d4a3aa092476596b3f8a933bde349"
 
 [[projects]]
   name = "github.com/spf13/afero"
@@ -492,7 +492,7 @@
     "lex/httplex",
     "publicsuffix"
   ]
-  revision = "d0aafc73d5cdc42264b0af071c261abac580695e"
+  revision = "ae89d30ce0c63142b652837da33d782e2b0a9b25"
 
 [[projects]]
   branch = "master"
@@ -504,7 +504,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "7dca6fe1f43775aa6d1334576870ff63f978f539"
+  revision = "c28acc882ebcbfbe8ce9f0f14b9ac26ee138dd51"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -712,6 +712,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "423a7c70cc3444e404f347215cb7d167ea21899ee9749eeb6d0259984a20ce0e"
+  inputs-digest = "bdcca7a27ebe9593d57dafdd6e9cedb41972dc9d1857c7c594030594702718f8"
   solver-name = "gps-cdcl"
   solver-version = 1
