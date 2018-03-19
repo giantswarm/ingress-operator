@@ -19,7 +19,7 @@ func (r *Resource) ApplyDeleteChange(ctx context.Context, obj, deleteChange inte
 	}
 
 	if configMapToDelete != nil {
-		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleting the config map data in the Kubernetes API")
+		r.logger.LogCtx(ctx, "level", "debug", "message", "deleting the config map data in the Kubernetes API")
 
 		namespace := customObject.Spec.HostCluster.IngressController.Namespace
 		_, err := r.k8sClient.CoreV1().ConfigMaps(namespace).Update(configMapToDelete)
@@ -27,9 +27,9 @@ func (r *Resource) ApplyDeleteChange(ctx context.Context, obj, deleteChange inte
 			return microerror.Mask(err)
 		}
 
-		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "deleted the config map data in the Kubernetes API")
+		r.logger.LogCtx(ctx, "level", "debug", "message", "deleted the config map data in the Kubernetes API")
 	} else {
-		r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "the config map data does not need to be deleted in the Kubernetes API")
+		r.logger.LogCtx(ctx, "level", "debug", "message", "the config map data does not need to be deleted in the Kubernetes API")
 	}
 
 	return nil
@@ -48,10 +48,6 @@ func (r *Resource) NewDeletePatch(ctx context.Context, obj, currentState, desire
 }
 
 func (r *Resource) newDeleteChange(ctx context.Context, obj, currentState, desiredState interface{}) (interface{}, error) {
-	customObject, err := toCustomObject(obj)
-	if err != nil {
-		return microerror.Mask(err), nil
-	}
 	currentConfigMap, err := toConfigMap(currentState)
 	if err != nil {
 		return microerror.Mask(err), nil
@@ -61,7 +57,7 @@ func (r *Resource) newDeleteChange(ctx context.Context, obj, currentState, desir
 		return nil, microerror.Maskf(wrongTypeError, "expected '%T', got '%T'", map[string]string{}, desiredState)
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get delete state")
+	r.logger.LogCtx(ctx, "level", "debug", "message", "get delete state")
 
 	// Make sure the current state of the Kubernetes resources is known by the
 	// delete action. The resources we already fetched represent the source of
@@ -86,7 +82,7 @@ func (r *Resource) newDeleteChange(ctx context.Context, obj, currentState, desir
 	}
 	deleteState.Data = newData
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found delete state: %#v", deleteState))
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("found delete state: %#v", deleteState))
 
 	return deleteState, nil
 }
