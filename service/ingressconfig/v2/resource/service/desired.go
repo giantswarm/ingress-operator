@@ -15,7 +15,7 @@ func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) (interf
 		return microerror.Mask(err), nil
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", "get desired state")
+	r.logger.LogCtx(ctx, "level", "debug", "message", "get desired state")
 
 	// Lookup the desired state of the service to have a reference of ports how
 	// they should be.
@@ -39,7 +39,7 @@ func (r *Resource) GetDesiredState(ctx context.Context, obj interface{}) (interf
 		dState = append(dState, newPort)
 	}
 
-	r.logger.Log("cluster", customObject.Spec.GuestCluster.ID, "debug", fmt.Sprintf("found desired state: %#v", dState))
+	r.logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("found desired state: %#v", dState))
 
 	return dState, nil
 }
