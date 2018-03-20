@@ -131,15 +131,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/giantswarm/microstorage"
-  packages = [
-    ".",
-    "memory"
-  ]
-  revision = "4411a6307c6b844b7f9e68aaba37407b41b1c4d7"
-
-[[projects]]
-  branch = "master"
   name = "github.com/giantswarm/operatorkit"
   packages = [
     "client/k8scrdclient",
@@ -354,7 +345,7 @@
     "jlexer",
     "jwriter"
   ]
-  revision = "f594efddfa171111dc4349cd6e78e8f61dc7936f"
+  revision = "517203d186eb343d3df4068565cc0446b450d2c4"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -710,6 +701,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "99286487400601c652061da3f197d8ae4d005482a932d048172453e12b3cabd8"
+  inputs-digest = "14132972a591f2074cb7972297390a0aa285beb3e64912355b73088c2caa0c8e"
   solver-name = "gps-cdcl"
   solver-version = 1
