@@ -124,13 +124,12 @@
   revision = "ad4de16de22043f947fdf6c587cbc2736456d33d"
 
 [[projects]]
-  branch = "kept"
+  branch = "master"
   name = "github.com/giantswarm/operatorkit"
   packages = [
     "client/k8scrdclient",
     "client/k8srestconfig",
     "controller",
-    "controller/context/finalizerskeptcontext",
     "controller/context/reconciliationcanceledcontext",
     "controller/context/resourcecanceledcontext",
     "controller/context/updateallowedcontext",
@@ -140,7 +139,7 @@
     "controller/resource/retryresource",
     "informer"
   ]
-  revision = "b36b7fbef1ebf4445ae5444a8a460b09c1e8df9a"
+  revision = "5705b45040654b97beb8df955db880944b646692"
 
 [[projects]]
   branch = "master"
@@ -708,6 +707,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4752998bee7ddb2157bea1c96697676f19c6f1d7c58715f27a48acd7dc740594"
+  inputs-digest = "74b25be482d8a015386bae526b65643b442676ac496c49406b428ab88ce4635a"
   solver-name = "gps-cdcl"
   solver-version = 1

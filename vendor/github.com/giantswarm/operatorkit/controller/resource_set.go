@@ -9,7 +9,6 @@ import (
 	"github.com/giantswarm/micrologger/loggermeta"
 	"k8s.io/apimachinery/pkg/api/meta"
 
-	"github.com/giantswarm/operatorkit/controller/context/finalizerskeptcontext"
 	"github.com/giantswarm/operatorkit/controller/context/updateallowedcontext"
 	"github.com/giantswarm/operatorkit/controller/context/updatenecessarycontext"
 )
@@ -68,7 +67,6 @@ func NewResourceSet(c ResourceSetConfig) (*ResourceSet, error) {
 }
 
 func (r *ResourceSet) InitCtx(ctx context.Context, obj interface{}) (context.Context, error) {
-	ctx = finalizerskeptcontext.NewContext(ctx, make(chan struct{}))
 	ctx = updateallowedcontext.NewContext(ctx, make(chan struct{}))
 	ctx = updatenecessarycontext.NewContext(ctx, make(chan struct{}))
 
