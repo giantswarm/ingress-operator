@@ -5,6 +5,10 @@ import (
 	"github.com/giantswarm/microerror"
 )
 
+func IsInDeletionState(customObject v1alpha1.IngressConfig) bool {
+	return customObject.GetDeletionTimestamp() != nil
+}
+
 func ToCustomObject(v interface{}) (v1alpha1.IngressConfig, error) {
 	customObjectPointer, ok := v.(*v1alpha1.IngressConfig)
 	if !ok {
