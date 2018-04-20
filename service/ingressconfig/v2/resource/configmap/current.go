@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/giantswarm/cert-operator/service/controller/v2/key"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/operatorkit/controller/context/finalizerskeptcontext"
 	"github.com/giantswarm/operatorkit/controller/context/resourcecanceledcontext"
-	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/key"
 )
 
 func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interface{}, error) {
@@ -22,7 +23,7 @@ func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interf
 	// Lookup the current state of the configmap.
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
 	configMap := customObject.Spec.HostCluster.IngressController.ConfigMap
-	k8sConfigMap, err := r.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap, apismetav1.GetOptions{})
+	k8sConfigMap, err := r.k8sClient.CoreV1().ConfigMaps(namespace).Get(configMap, metav1.GetOptions{})
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

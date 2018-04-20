@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/giantswarm/cert-operator/service/controller/v2/key"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/operatorkit/controller/context/finalizerskeptcontext"
 	"github.com/giantswarm/operatorkit/controller/context/resourcecanceledcontext"
-	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/key"
 )
 
 func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interface{}, error) {
@@ -21,7 +22,7 @@ func (r *Resource) GetCurrentState(ctx context.Context, obj interface{}) (interf
 
 	namespace := customObject.Spec.HostCluster.IngressController.Namespace
 	service := customObject.Spec.HostCluster.IngressController.Service
-	k8sService, err := r.k8sClient.CoreV1().Services(namespace).Get(service, apismetav1.GetOptions{})
+	k8sService, err := r.k8sClient.CoreV1().Services(namespace).Get(service, metav1.GetOptions{})
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

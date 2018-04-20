@@ -5,6 +5,14 @@ import (
 	"github.com/giantswarm/microerror"
 )
 
+func ClusterID(customObject v1alpha1.IngressConfig) string {
+	return customObject.Spec.GuestCluster.ID
+}
+
+func ClusterNamespace(customObject v1alpha1.IngressConfig) string {
+	return customObject.Spec.GuestCluster.Namespace
+}
+
 func IsInDeletionState(customObject v1alpha1.IngressConfig) bool {
 	return customObject.GetDeletionTimestamp() != nil
 }
