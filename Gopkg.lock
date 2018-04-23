@@ -130,6 +130,7 @@
     "client/k8scrdclient",
     "client/k8srestconfig",
     "controller",
+    "controller/context/finalizerskeptcontext",
     "controller/context/reconciliationcanceledcontext",
     "controller/context/resourcecanceledcontext",
     "controller/context/updateallowedcontext",
@@ -139,7 +140,7 @@
     "controller/resource/retryresource",
     "informer"
   ]
-  revision = "5705b45040654b97beb8df955db880944b646692"
+  revision = "20be1f8c80b4b638cfebd5e8fb001a003c27762b"
 
 [[projects]]
   branch = "master"
@@ -488,7 +489,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "a2a45943ae67364d56c5d7d62dee78cff16c8dc8"
+  revision = "79b0c6888797020a994db17c8510466c72fe75d9"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -707,6 +708,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "74b25be482d8a015386bae526b65643b442676ac496c49406b428ab88ce4635a"
+  inputs-digest = "990f38cf13b43cbeb96bd784d1d2663fc02296f42d6bff8c0fb659dc947ff0a9"
   solver-name = "gps-cdcl"
   solver-version = 1
