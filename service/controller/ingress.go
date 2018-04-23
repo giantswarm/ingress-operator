@@ -1,4 +1,4 @@
-package service
+package controller
 
 import (
 	"github.com/giantswarm/apiextensions/pkg/apis/core/v1alpha1"
@@ -11,14 +11,14 @@ import (
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2"
+	"github.com/giantswarm/ingress-operator/service/controller/v2"
 )
 
 const (
 	ResourceRetries uint64 = 3
 )
 
-type FrameworkConfig struct {
+type IngressConfig struct {
 	G8sClient    versioned.Interface
 	K8sClient    kubernetes.Interface
 	K8sExtClient apiextensionsclient.Interface
@@ -27,7 +27,11 @@ type FrameworkConfig struct {
 	ProjectName string
 }
 
-func NewFramework(config FrameworkConfig) (*controller.Controller, error) {
+type Ingress struct {
+	*controller.Controller
+}
+
+func NewIngress(config IngressConfig) (*Ingress, error) {
 	if config.G8sClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.G8sClient must not be empty", config)
 	}
@@ -93,7 +97,7 @@ func NewFramework(config FrameworkConfig) (*controller.Controller, error) {
 		}
 	}
 
-	var crdFramework *controller.Controller
+	var operatorkitController *controller.Controller
 	{
 		c := controller.Config{
 			CRD:            v1alpha1.NewIngressConfigCRD(),
@@ -106,11 +110,15 @@ func NewFramework(config FrameworkConfig) (*controller.Controller, error) {
 			Name: config.ProjectName,
 		}
 
-		crdFramework, err = controller.New(c)
+		operatorkitController, err = controller.New(c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
 	}
 
-	return crdFramework, nil
+	i := &Ingress{
+		Controller: operatorkitController,
+	}
+
+	return i, nil
 }

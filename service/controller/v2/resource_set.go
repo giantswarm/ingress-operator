@@ -11,9 +11,9 @@ import (
 	"github.com/giantswarm/operatorkit/controller/resource/retryresource"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/key"
-	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/configmap"
-	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2/resource/service"
+	"github.com/giantswarm/ingress-operator/service/controller/v2/key"
+	"github.com/giantswarm/ingress-operator/service/controller/v2/resource/configmap"
+	"github.com/giantswarm/ingress-operator/service/controller/v2/resource/service"
 )
 
 const (
