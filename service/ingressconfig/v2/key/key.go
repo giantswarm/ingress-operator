@@ -13,7 +13,7 @@ func ClusterNamespace(customObject v1alpha1.IngressConfig) string {
 	return customObject.Spec.GuestCluster.Namespace
 }
 
-func IsInDeletionState(customObject v1alpha1.IngressConfig) bool {
+func IsDeleted(customObject v1alpha1.IngressConfig) bool {
 	return customObject.GetDeletionTimestamp() != nil
 }
 
