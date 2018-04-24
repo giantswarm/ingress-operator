@@ -10,22 +10,19 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/operatorkit/client/k8srestconfig"
-	"github.com/giantswarm/operatorkit/controller"
 	"github.com/spf13/viper"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	"github.com/giantswarm/ingress-operator/flag"
+	"github.com/giantswarm/ingress-operator/service/controller"
 	"github.com/giantswarm/ingress-operator/service/healthz"
 )
 
-// Config represents the configuration used to create a new service.
 type Config struct {
-	// Dependencies.
 	Logger micrologger.Logger
 
-	// Settings.
 	Flag  *flag.Flag
 	Viper *viper.Viper
 
@@ -39,10 +36,8 @@ type Config struct {
 // best effort.
 func DefaultConfig() Config {
 	return Config{
-		// Dependencies.
 		Logger: nil,
 
-		// Settings.
 		Flag:  nil,
 		Viper: nil,
 
@@ -54,13 +49,12 @@ func DefaultConfig() Config {
 }
 
 type Service struct {
-	// Dependencies.
-	Healthz                *healthz.Service
-	IngressConfigFramework *controller.Controller
-	Version                *version.Service
+	Healthz *healthz.Service
+	Version *version.Service
 
 	// Internals.
-	bootOnce sync.Once
+	bootOnce          sync.Once
+	ingressController *controller.Ingress
 }
 
 // New creates a new configured service object.
@@ -123,9 +117,9 @@ func New(config Config) (*Service, error) {
 		}
 	}
 
-	var ingressConfigFramework *controller.Controller
+	var ingressController *controller.Ingress
 	{
-		c := FrameworkConfig{
+		c := controller.IngressConfig{
 			G8sClient:    g8sClient,
 			K8sClient:    k8sClient,
 			K8sExtClient: k8sExtClient,
@@ -134,7 +128,7 @@ func New(config Config) (*Service, error) {
 			ProjectName: config.Name,
 		}
 
-		ingressConfigFramework, err = NewFramework(c)
+		ingressController, err = controller.NewIngress(c)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
@@ -156,13 +150,11 @@ func New(config Config) (*Service, error) {
 	}
 
 	newService := &Service{
-		// Dependencies.
-		Healthz:                healthzService,
-		IngressConfigFramework: ingressConfigFramework,
-		Version:                versionService,
+		Healthz: healthzService,
+		Version: versionService,
 
-		// Internals
-		bootOnce: sync.Once{},
+		bootOnce:          sync.Once{},
+		ingressController: ingressController,
 	}
 
 	return newService, nil
@@ -170,6 +162,6 @@ func New(config Config) (*Service, error) {
 
 func (s *Service) Boot() {
 	s.bootOnce.Do(func() {
-		go s.IngressConfigFramework.Boot()
+		go s.ingressController.Boot()
 	})
 }

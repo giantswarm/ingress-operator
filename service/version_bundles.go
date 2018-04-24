@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/giantswarm/versionbundle"
 
-	"github.com/giantswarm/ingress-operator/service/ingressconfig/v2"
+	"github.com/giantswarm/ingress-operator/service/controller/v2"
 )
 
 func NewVersionBundles() []versionbundle.Bundle {
