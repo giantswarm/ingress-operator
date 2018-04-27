@@ -54,6 +54,7 @@ func NewIngress(config IngressConfig) (*Ingress, error) {
 	var newInformer *informer.Informer
 	{
 		c := informer.Config{
+			Logger:  config.Logger,
 			Watcher: config.G8sClient.CoreV1alpha1().IngressConfigs(""),
 
 			RateWait:     informer.DefaultRateWait,
