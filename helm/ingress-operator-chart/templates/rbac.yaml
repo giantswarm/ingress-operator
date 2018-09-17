@@ -58,7 +58,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: ingress-operator
-    namespace: giantswarm
+    namespace: {{ .Values.namespace }}
 roleRef:
   kind: ClusterRole
   name: ingress-operator
@@ -85,7 +85,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: ingress-operator
-    namespace: giantswarm
+    namespace: {{ .Values.namespace }}
 roleRef:
   kind: ClusterRole
   name: ingress-operator-psp
